@@ -14,17 +14,17 @@
 </header>
 
 <div class="section-title">
-    <span>☕️ 选择饮品</span>
+    <div class="section-left">
+        <span class="section-item" id="userBtn">我的 ▾</span>
+        <span class="section-item" id="allTab">☕️ 选择饮品</span>
+        <div class="dropdown" id="userDropdown">
+            <div class="dropdown-item" id="favAction">收藏</div>
+        </div>
+    </div>
 </div>
 <main class="menu-grid" id="menuGrid"></main>
 
-<div class="section-title" id="logTitle">
-    <span>📝 我的调试记录</span>
-    <span class="clear-log" onclick="clearLogs()">[清空]</span>
-</div>
-<div class="log-book" id="logBook">
-    <p class="no-log">暂无记录</p>
-</div>
+
 
 <div class="modal-overlay" id="modalOverlay">
     <div class="recipe-card">

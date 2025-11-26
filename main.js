@@ -1,20 +1,37 @@
 let currentCoffeeId = null;
-let brewLogs = JSON.parse(localStorage.getItem('coffeeBrewLogs_v3')) || [];
 
 const menuGrid = document.getElementById('menuGrid');
 const modalOverlay = document.getElementById('modalOverlay');
 const rImage = document.getElementById('rImage');
+const userBtn = document.getElementById('userBtn');
+const userDropdown = document.getElementById('userDropdown');
+const favAction = document.getElementById('favAction');
+const allTab = document.getElementById('allTab');
+const FAVORITES_KEY = 'coffeeFavorites';
 
-// 渲染菜单
-coffeeData.forEach(c => {
-    const item = document.createElement('div');
-    item.className = 'menu-item';
-    item.innerHTML = `<div class="menu-icon">${c.icon}</div><div class="menu-name">${c.name.replace('\n','<br>')}</div>`;
-    item.onclick = ()=>openModal(c.id);
-    menuGrid.appendChild(item);
+function renderAll(){
+    menuGrid.innerHTML = '';
+    coffeeData.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'menu-item';
+        item.innerHTML = `<div class=\"menu-icon\">${c.icon}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
+        item.onclick = ()=>openModal(c.id);
+        menuGrid.appendChild(item);
+    });
+}
+renderAll();
+
+allTab.onclick = ()=>{ renderAll(); };
+document.addEventListener('click', (e)=>{
+    if(!userDropdown.contains(e.target) && !userBtn.contains(e.target)){
+        userDropdown.classList.remove('open');
+    }
 });
-
-renderLogs();
+userBtn.onclick = ()=>{ 
+    userDropdown.style.left = userBtn.offsetLeft + 'px';
+    userDropdown.classList.toggle('open'); 
+};
+favAction.onclick = ()=>{ renderFavorites(); userDropdown.classList.remove('open'); };
 
 // 打开弹窗
 function openModal(id){
@@ -49,48 +66,36 @@ function closeModal(){
 // 保存日志
 document.getElementById('saveBtn').onclick = ()=>{
     const coffee = coffeeData.find(c=>c.id===currentCoffeeId);
-    const entry = {
-        id:Date.now(),
-        name:coffee.name.replace('\n',' '),
-        details: '已保存'
-    };
-    brewLogs.unshift(entry);
-    localStorage.setItem('coffeeBrewLogs_v3', JSON.stringify(brewLogs));
-    renderLogs();
+    if(!coffee){ closeModal(); return; }
+    const favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    if(!favs.includes(coffee.id)) favs.unshift(coffee.id);
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
     closeModal();
-}
+};
 
 // 渲染日志
-function renderLogs(){
-    const logBook=document.getElementById('logBook');
-    if(brewLogs.length===0){ logBook.innerHTML='<p class="no-log">暂无记录</p>'; return;}
-    logBook.innerHTML='';
-    brewLogs.forEach(l=>{
-        const div = document.createElement('div');
-        div.className='log-entry';
-        div.innerHTML=`
-            <div class="log-info">
-                <h4>${l.name}</h4>
-                <div class="log-details">${l.details || ''}</div>
-            </div>
-            <div class="delete-log" onclick="deleteLog(${l.id})">&times;</div>
-        `;
-        logBook.appendChild(div);
+function renderFavorites(){
+    const ids = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    menuGrid.innerHTML = '';
+    ids.forEach(id=>{
+        const c = coffeeData.find(x=>x.id===id);
+        if(!c) return;
+        const item = document.createElement('div');
+        item.className = 'menu-item';
+        item.innerHTML = `<div class=\"menu-icon\">${c.icon}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
+        const del = document.createElement('button');
+        del.className = 'card-delete';
+        del.innerText = '🗑️';
+        del.title = '取消收藏';
+        del.onclick = (e)=>{
+            e.stopPropagation();
+            const favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+            const next = favs.filter(fid => fid !== id);
+            localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
+            renderFavorites();
+        };
+        item.appendChild(del);
+        item.onclick = ()=>{ openModal(c.id); };
+        menuGrid.appendChild(item);
     });
-}
-
-// 删除单条日志
-function deleteLog(id){
-    brewLogs=brewLogs.filter(l=>l.id!==id);
-    localStorage.setItem('coffeeBrewLogs_v3', JSON.stringify(brewLogs));
-    renderLogs();
-}
-
-// 清空日志
-function clearLogs(){
-    if(confirm('确定清空所有记录吗？')){
-        brewLogs=[];
-        localStorage.setItem('coffeeBrewLogs_v3','[]');
-        renderLogs();
-    }
 }

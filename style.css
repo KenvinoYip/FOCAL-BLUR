@@ -39,6 +39,13 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
 }
 .clear-log { font-size:0.8rem; color:#999; cursor:pointer; }
 
+.section-left { position: relative; display:flex; gap: 14px; align-items: flex-end; letter-spacing: 0.5px; }
+.section-item { font-size: 1.1rem; cursor: pointer; }
+.dropdown { position: absolute; left: 0; top: calc(100% + 6px); background: var(--card-bg); border: 1px solid rgba(121,85,72,0.15); border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); min-width: 120px; display: none; z-index: 3; padding: 12px; }
+.dropdown.open { display: block; }
+.dropdown-item { padding: 10px 12px; font-size: 0.9rem; cursor: pointer; }
+.dropdown-item:hover { background: #f7f3ee; }
+
 .menu-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -152,3 +159,17 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
 }
 
 @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+.card-delete {
+    position: absolute; top: 8px; right: 8px;
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(255,255,255,0.95);
+    border: 1px solid rgba(121,85,72,0.2);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: var(--accent-brown);
+    cursor: pointer; opacity: 0; transform: scale(0.9);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.menu-item:hover .card-delete { opacity: 1; transform: scale(1); }
+.card-delete:active { transform: scale(0.95); }
+.card-delete:focus-visible { outline: 2px solid var(--accent-brown); outline-offset: 2px; }
