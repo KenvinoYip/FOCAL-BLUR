@@ -92,10 +92,10 @@ function closeModal(){
 
 // 保存日志
 document.getElementById('saveBtn').onclick = ()=>{
-    const coffee = coffeeData.find(c=>c.id===currentCoffeeId);
-    if(!coffee){ closeModal(); return; }
+    const item = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])].find(c=>c.id===currentCoffeeId);
+    if(!item){ closeModal(); return; }
     const favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-    if(!favs.includes(coffee.id)) favs.unshift(coffee.id);
+    if(!favs.includes(item.id)) favs.unshift(item.id);
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
     closeModal();
 };
