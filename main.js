@@ -7,6 +7,7 @@ const userBtn = document.getElementById('userBtn');
 const userDropdown = document.getElementById('userDropdown');
 const favAction = document.getElementById('favAction');
 const allTab = document.getElementById('allTab');
+const liquorTab = document.getElementById('liquorTab');
 const FAVORITES_KEY = 'coffeeFavorites';
 
 function renderAll(){
@@ -21,7 +22,19 @@ function renderAll(){
 }
 renderAll();
 
+function renderLiquor(){
+    menuGrid.innerHTML = '';
+    (typeof liquorData !== 'undefined' ? liquorData : []).forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'menu-item';
+        item.innerHTML = `<div class=\"menu-icon\">${c.icon || '🍸'}</div><div class=\"menu-name\">${(c.name || '').replace('\\n','<br>')}</div>`;
+        item.onclick = ()=>openModal(c.id);
+        menuGrid.appendChild(item);
+    });
+}
+
 allTab.onclick = ()=>{ renderAll(); };
+liquorTab.onclick = ()=>{ renderLiquor(); };
 document.addEventListener('click', (e)=>{
     if(!userDropdown.contains(e.target) && !userBtn.contains(e.target)){
         userDropdown.classList.remove('open');
@@ -36,13 +49,27 @@ favAction.onclick = ()=>{ renderFavorites(); userDropdown.classList.remove('open
 // 打开弹窗
 function openModal(id){
     currentCoffeeId=id;
-    const coffee=coffeeData.find(c=>c.id===id);
+    const coffee=[...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])].find(c=>c.id===id);
     document.getElementById('rTitle').innerText=coffee.name.replace('\n',' ');
     document.getElementById('rDesc').innerText=coffee.desc;
 
     const stepsContainer=document.getElementById('rSteps');
     stepsContainer.innerHTML='';
     coffee.steps.forEach(s=>stepsContainer.innerHTML+=`<li>${s}</li>`);
+
+    const tipsSection = document.getElementById('rTipsSection');
+    const tipsList = document.getElementById('rTipsList');
+    tipsList.innerHTML='';
+    const tips = coffee.tips;
+    if(Array.isArray(tips) && tips.length>0){
+        tipsSection.style.display='block';
+        tips.forEach(t=>tipsList.innerHTML+=`<li>${t}</li>`);
+    } else if(typeof tips === 'string' && tips.trim().length>0){
+        tipsSection.style.display='block';
+        tipsList.innerHTML=`<li>${tips}</li>`;
+    } else {
+        tipsSection.style.display='none';
+    }
 
     
 
@@ -78,14 +105,14 @@ function renderFavorites(){
     const ids = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     menuGrid.innerHTML = '';
     ids.forEach(id=>{
-        const c = coffeeData.find(x=>x.id===id);
+        const c = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])].find(x=>x.id===id);
         if(!c) return;
         const item = document.createElement('div');
         item.className = 'menu-item';
         item.innerHTML = `<div class=\"menu-icon\">${c.icon}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
         const del = document.createElement('button');
-        del.className = 'card-delete';
-        del.innerText = '🗑️';
+        del.className = 'card-fav';
+        del.innerText = '★';
         del.title = '取消收藏';
         del.onclick = (e)=>{
             e.stopPropagation();
