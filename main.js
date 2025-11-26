@@ -9,6 +9,8 @@ const favAction = document.getElementById('favAction');
 const allTab = document.getElementById('allTab');
 const liquorTab = document.getElementById('liquorTab');
 const FAVORITES_KEY = 'coffeeFavorites';
+const CUSTOM_STEPS_KEY = 'coffeeCustomSteps';
+let isEditingSteps = false;
 
 function renderAll(){
     menuGrid.innerHTML = '';
@@ -55,7 +57,67 @@ function openModal(id){
 
     const stepsContainer=document.getElementById('rSteps');
     stepsContainer.innerHTML='';
-    coffee.steps.forEach(s=>stepsContainer.innerHTML+=`<li>${s}</li>`);
+    const customMap = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
+    const favsForCheck = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    const custom = Array.isArray(customMap[id]) ? customMap[id] : null;
+    const useCustom = favsForCheck.includes(id) && custom && custom.length>0;
+    const steps = useCustom ? custom : coffee.steps;
+    steps.forEach(s=>stepsContainer.innerHTML+=`<li>${s}</li>`);
+
+    const editBtn = document.getElementById('editStepsBtn');
+    const addBtn = document.getElementById('addStepBtn');
+    const resetBtn = document.getElementById('resetStepsBtn');
+    isEditingSteps = false;
+    editBtn.innerText = '编辑步骤';
+    addBtn.style.display = 'none';
+    editBtn.onclick = ()=>{
+        const list = document.getElementById('rSteps');
+        if(!isEditingSteps){
+            const items = Array.from(list.querySelectorAll('li')).map(li=>li.innerText.trim());
+            list.innerHTML = '';
+            items.forEach(text=>{
+                const li = document.createElement('li');
+                const input = document.createElement('input');
+                input.className = 'step-input';
+                input.value = text;
+                li.appendChild(input);
+                list.appendChild(li);
+            });
+            isEditingSteps = true;
+            editBtn.innerText = '完成编辑';
+            addBtn.style.display = 'inline-block';
+        } else {
+            const inputs = Array.from(document.querySelectorAll('#rSteps input.step-input'));
+            const next = inputs.map(i=>i.value.trim()).filter(v=>v.length>0);
+            const list2 = document.getElementById('rSteps');
+            list2.innerHTML = '';
+            next.forEach(s=>list2.innerHTML+=`<li>${s}</li>`);
+            isEditingSteps = false;
+            editBtn.innerText = '编辑步骤';
+            addBtn.style.display = 'none';
+        }
+    };
+    addBtn.onclick = ()=>{
+        if(!isEditingSteps) return;
+        const li = document.createElement('li');
+        const input = document.createElement('input');
+        input.className = 'step-input';
+        input.placeholder = '新步骤';
+        li.appendChild(input);
+        document.getElementById('rSteps').appendChild(li);
+        input.focus();
+    };
+    resetBtn.onclick = ()=>{
+        const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
+        delete map[id];
+        localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
+        const list = document.getElementById('rSteps');
+        list.innerHTML = '';
+        coffee.steps.forEach(s=>list.innerHTML+=`<li>${s}</li>`);
+        isEditingSteps = false;
+        editBtn.innerText = '编辑步骤';
+        addBtn.style.display = 'none';
+    };
 
     const tipsSection = document.getElementById('rTipsSection');
     const tipsList = document.getElementById('rTipsList');
@@ -94,6 +156,15 @@ function closeModal(){
 document.getElementById('saveBtn').onclick = ()=>{
     const item = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])].find(c=>c.id===currentCoffeeId);
     if(!item){ closeModal(); return; }
+    const currentList = document.getElementById('rSteps');
+    const inputs = Array.from(currentList.querySelectorAll('input.step-input'));
+    const listItems = Array.from(currentList.querySelectorAll('li'));
+    const steps = inputs.length>0 
+        ? inputs.map(i=>i.value.trim()).filter(v=>v.length>0)
+        : listItems.map(li=>li.innerText.trim()).filter(v=>v.length>0);
+    const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
+    map[item.id] = steps;
+    localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
     const favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     if(!favs.includes(item.id)) favs.unshift(item.id);
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
@@ -119,6 +190,8 @@ function renderFavorites(){
             const favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
             const next = favs.filter(fid => fid !== id);
             localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
+            const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
+            if (map[id]) { delete map[id]; localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map)); }
             renderFavorites();
         };
         item.appendChild(del);
