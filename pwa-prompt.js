@@ -1,11 +1,11 @@
 document.addEventListener("DOMContentLoaded", function () {
   // === 配置部分 ===
-  const APP_NAME = "Coffee Daily";
-  const PROMPT_TEXT = "将咖啡实验室添加到桌面";
+  const APP_NAME = "FOCAL BLUR";
+  const PROMPT_TEXT = "将FOCAL BLUR添加到桌面";
   // 这里暂时用一个占位符，请替换为你上传到 images 文件夹的图标路径
   const ICON_URL = "images/icon-192.png"; 
   const DISMISS_HOURS = 12; 
-  const DELAY_MS = 3000; // 3秒后弹出，不要太打扰用户
+  const DELAY_MS = 5000; // 5秒后弹出，不要太打扰用户
 
   // === 工具函数 ===
   const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
@@ -81,10 +81,10 @@ document.addEventListener("DOMContentLoaded", function () {
     
     document.getElementById("pwa-add").onclick = function () {
       if (!isIOSGuide) {
-        onConfirm(); // Android 触发原生安装
+        onConfirm();
       } else {
         localStorage.setItem("pwa_prompt_dismiss", Date.now());
-        hidePrompt(); // iOS 只是个提示，点击后关闭
+        window.location.href = "pwa-guide.html";
       }
     };
 
