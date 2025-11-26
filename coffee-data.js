@@ -27,7 +27,7 @@ const coffeeData = [
         steps:['萃取浓缩基底','打发厚奶泡(2cm)','倒入杯中，奶泡分层']
     },
     {
-        id:'flatwhite', name:'Flat White\n澳白', icon:'🌿', image: 'images/Flatwhite.jpg',
+        id:'flatwhite', name:'Flat White\n澳白', icon:'🌿', image: 'images/FlatWhite.jpg',
         desc:'短萃取浓缩 + 薄牛奶。',
         isAdjustable:true, mixerName:'牛奶', mixerColor:'var(--milk-color)',
         hasFoam:true, foamVal:0.2,
