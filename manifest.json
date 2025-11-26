@@ -1,7 +1,8 @@
 {
   "name": "FOCAL BLUR",
   "short_name": "FOCALBLUR",
-  "start_url": "./index.html",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f8f5e6",
   "theme_color": "#f8f5e6",

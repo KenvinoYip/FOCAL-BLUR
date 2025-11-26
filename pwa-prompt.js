@@ -6,6 +6,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const ICON_URL = "images/icon-192.png"; 
   const DISMISS_HOURS = 12; 
   const DELAY_MS = 5000; // 5秒后弹出，不要太打扰用户
+  const DEBUG_INSTALL = new URLSearchParams(location.search).get('debug') === 'install';
 
   // === 工具函数 ===
   const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
@@ -19,12 +20,12 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // 已经安装或是电脑端，则不提示
-  if (isInStandaloneMode || (!isIOS && !isAndroid)) return;
+  if (!DEBUG_INSTALL && (isInStandaloneMode || (!isIOS && !isAndroid))) return;
 
   // 检查是否在冷却期
   const lastDismiss = localStorage.getItem("pwa_prompt_dismiss");
   const now = Date.now();
-  if (lastDismiss && now - lastDismiss < DISMISS_HOURS * 60 * 60 * 1000) {
+  if (!DEBUG_INSTALL && lastDismiss && now - lastDismiss < DISMISS_HOURS * 60 * 60 * 1000) {
     return;
   }
 
@@ -48,6 +49,16 @@ document.addEventListener("DOMContentLoaded", function () {
       showPrompt(() => { hidePrompt(); }, true);
     }, DELAY_MS);
   }
+
+  if (DEBUG_INSTALL && !isIOS) {
+    setTimeout(() => {
+      showPrompt(() => { hidePrompt(); }, false);
+    }, DELAY_MS);
+  }
+
+  window.addEventListener('appinstalled', () => {
+    localStorage.setItem("pwa_prompt_dismiss", Date.now());
+  });
 
   // === 显示提示框 ===
   function showPrompt(onConfirm, isIOSGuide = false) {

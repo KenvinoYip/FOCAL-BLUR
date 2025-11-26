@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coffee-daily-v1';
+const CACHE_NAME = 'coffee-daily-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS_TO_CACHE = [
   './coffee-data.js',
   './liquor-data.js',
   './pwa-prompt.js',
+  './pwa-guide.html',
   // 如果你有默认图片，也可以加在这里
 ];
 
@@ -18,10 +19,39 @@ self.addEventListener('install', (e) => {
   );
 });
 
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(keys.map((k) => {
+        if (k !== CACHE_NAME) return caches.delete(k);
+        return Promise.resolve();
+      }));
     })
+  );
+});
+
+self.addEventListener('fetch', (e) => {
+  const req = e.request;
+  if (req.mode === 'navigate') {
+    e.respondWith(
+      fetch(req).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+  if (req.destination === 'image') {
+    e.respondWith(
+      caches.match(req).then((res) => {
+        if (res) return res;
+        return fetch(req).then((netRes) => {
+          const clone = netRes.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
+          return netRes;
+        });
+      })
+    );
+    return;
+  }
+  e.respondWith(
+    caches.match(req).then((res) => res || fetch(req))
   );
 });

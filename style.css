@@ -40,7 +40,13 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
 .clear-log { font-size:0.8rem; color:#999; cursor:pointer; }
 
 .section-left { position: relative; display:flex; gap: 14px; align-items: flex-end; letter-spacing: 0.5px; }
-.section-item { font-size: 1.1rem; cursor: pointer; }
+.section-item { 
+    font-size: 1rem; 
+    font-weight: 600; 
+    line-height: 1.6; 
+    cursor: pointer; 
+    font-family: 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', Helvetica, 'Microsoft YaHei', Arial, sans-serif;
+}
 .dropdown { position: absolute; left: 0; top: calc(100% + 6px); background: var(--card-bg); border: 1px solid rgba(121,85,72,0.15); border-radius: 10px; box-shadow: 0 8px 20px rgba(0,0,0,0.12); min-width: 120px; display: none; z-index: 3; padding: 12px; }
 .dropdown.open { display: block; }
 .dropdown-item { padding: 10px 12px; font-size: 0.9rem; cursor: pointer; }
@@ -78,7 +84,12 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
     display: flex; align-items: center; justify-content: center;
     font-size: 28px;
 }
-.menu-name { font-weight: 600; font-size: 1.05rem; }
+.menu-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    font-family: 'PingFang SC', 'SF Pro Text', 'Helvetica Neue', Helvetica, 'Microsoft YaHei', Arial, sans-serif;
+}
 
 .log-book { width: 100%; max-width: 800px; display: grid; grid-template-columns: 1fr; gap: 15px; }
 .no-log { color:#999; font-size:0.9rem; padding:10px; text-align:center; }
