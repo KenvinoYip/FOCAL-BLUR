@@ -6,8 +6,8 @@ const ASSETS_TO_CACHE = [
   './main.js',
   './coffee-data.js',
   './liquor-data.js',
-  './pwa-prompt.js',
-  './pwa-guide.html',
+  './pwa/pwa-prompt.js',
+  './pwa/pwa-guide.html',
   // 如果你有默认图片，也可以加在这里
 ];
 

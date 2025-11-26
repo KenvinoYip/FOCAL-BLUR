@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Coffee Daily | The Home Barista Lab</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="pwa/manifest.json">
     <link rel="apple-touch-icon" href="images/icon-192.png">
 </head>
 <body>
@@ -48,11 +48,15 @@
 
                 
 
-                <div>
-                    <span class="ratio-label">制作步骤</span>
-                    <button id="editStepsBtn" class="small-btn" style="margin-left:8px">编辑步骤</button>
-                    <button id="resetStepsBtn" class="small-btn" style="margin-left:8px">恢复默认</button>
-                    <button id="addStepBtn" class="small-btn" style="margin-left:8px; display:none;">添加步骤</button>
+                <div class="steps-block">
+                    <div class="steps-bar">
+                        <span class="ratio-label">制作步骤</span>
+                        <div class="steps-actions">
+                            <button id="editStepsBtn" class="small-btn">编辑步骤</button>
+                            <button id="resetStepsBtn" class="small-btn">恢复默认</button>
+                            <button id="addStepBtn" class="small-btn" style="display:none;">添加步骤</button>
+                        </div>
+                    </div>
                     <ol id="rSteps"></ol>
                 </div>
 
@@ -73,6 +77,6 @@
 <script src="liquor-data.js"></script>
 <script src="main.js"></script>
 
-<script src="pwa-prompt.js"></script>
+<script src="pwa/pwa-prompt.js"></script>
 </body>
 </html>

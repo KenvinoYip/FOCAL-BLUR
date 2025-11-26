@@ -98,6 +98,14 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
 .small-btn:active { transform: scale(0.98); }
 .step-input { width:100%; padding:10px; border:1px solid rgba(121,85,72,0.2); border-radius:8px; font-size:0.95rem; }
 
+.steps-block { margin-top: 8px; }
+.steps-bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.steps-actions { display:flex; gap:8px; flex-wrap:wrap; }
+@media (max-width: 600px) {
+  .steps-bar { flex-wrap: wrap; }
+  .steps-actions { width: 100%; margin-top:6px; }
+}
+
 .log-book { width: 100%; max-width: 800px; display: grid; grid-template-columns: 1fr; gap: 15px; }
 .no-log { color:#999; font-size:0.9rem; padding:10px; text-align:center; }
 .log-entry {
