@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coffee-daily-v2.2';
+const CACHE_NAME = 'coffee-daily-v2.4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

@@ -4,19 +4,43 @@ const menuGrid = document.getElementById('menuGrid');
 const modalOverlay = document.getElementById('modalOverlay');
 const rImage = document.getElementById('rImage');
 const userBtn = document.getElementById('userBtn');
-const userDropdown = document.getElementById('userDropdown');
-const favAction = document.getElementById('favAction');
 const homeTab = document.getElementById('homeTab');
 const allTab = document.getElementById('allTab');
 const liquorTab = document.getElementById('liquorTab');
+const customTab = document.getElementById('customTab');
+const favTab = document.getElementById('favTab');
 const sidebar = document.getElementById('sidebar');
 const FAVORITES_KEY = 'coffeeFavorites';
 const CUSTOM_STEPS_KEY = 'coffeeCustomSteps';
+const PINNED_KEY = 'coffeePinnedItems';
+
+// 临时清理逻辑：清除可能意外存在的默认特调数据
+try {
+    const raw = localStorage.getItem(CUSTOM_STEPS_KEY);
+    if (raw) {
+        const map = JSON.parse(raw);
+        const toRemove = ['latte', 'espresso', 'americano'];
+        let changed = false;
+        toRemove.forEach(id => {
+            if (map[id]) {
+                delete map[id];
+                changed = true;
+            }
+        });
+        if (changed) {
+            localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
+            console.log('Cleaned up default custom steps:', toRemove);
+        }
+    }
+} catch (e) {
+    console.error('Error cleaning up custom steps:', e);
+}
+
 let isEditingSteps = false;
 const editBtn = document.getElementById('editStepsBtn');
 const addBtn = document.getElementById('addStepBtn');
 const resetBtn = document.getElementById('resetStepsBtn');
-let currentView = 'all';
+let currentView = 'home'; // 'home' or 'user'
 
 function showToast(msg){
     const t = document.getElementById('toast');
@@ -94,19 +118,18 @@ if (resetBtn) resetBtn.onclick = resetSteps;
 
 function updateSidebar(type) {
     if (!sidebar) return;
-    // Show sidebar if in home mode (all or liquor) - now merged as 'home'
-    if (type === 'home' || type === 'all' || type === 'liquor') {
-        sidebar.style.display = 'flex';
-        // Active state is now handled by scroll spy, but we can set initial
-        if (type === 'all') {
-            if (allTab) allTab.classList.add('active');
-            if (liquorTab) liquorTab.classList.remove('active');
-        } else if (type === 'liquor') {
-            if (allTab) allTab.classList.remove('active');
-            if (liquorTab) liquorTab.classList.add('active');
-        }
-    } else {
-        sidebar.style.display = 'none';
+    sidebar.style.display = 'flex';
+    
+    if (type === 'home') {
+        if (allTab) allTab.style.display = 'block';
+        if (liquorTab) liquorTab.style.display = 'block';
+        if (customTab) customTab.style.display = 'none';
+        if (favTab) favTab.style.display = 'none';
+    } else if (type === 'user') {
+        if (allTab) allTab.style.display = 'none';
+        if (liquorTab) liquorTab.style.display = 'none';
+        if (customTab) customTab.style.display = 'block';
+        if (favTab) favTab.style.display = 'block';
     }
 }
 
@@ -127,8 +150,6 @@ function renderHomeView() {
     });
     menuGrid.appendChild(coffeeSection);
 
-    // Spacer or just append
-    
     // Create Liquor Section
     const liquorSection = document.createElement('div');
     liquorSection.id = 'section-liquor';
@@ -146,34 +167,319 @@ function renderHomeView() {
     if (liquorTab) liquorTab.classList.remove('active');
 }
 
+function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'menu-item swipe-item';
+    
+    const content = document.createElement('div');
+    content.className = 'swipe-content';
+    if (isPinned) content.style.backgroundColor = '#fffbf0'; 
+    content.innerHTML = `<div class=\"menu-icon\">${c.icon}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
+    
+    const actions = document.createElement('div');
+    actions.className = 'swipe-actions';
+    
+    // Pin
+    const pinBtn = document.createElement('button');
+    pinBtn.className = 'swipe-btn btn-pin';
+    pinBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>`;
+    pinBtn.onclick = (e) => { e.stopPropagation(); onPin(); };
+    
+    // Delete
+    const delBtn = document.createElement('button');
+    delBtn.className = 'swipe-btn btn-delete';
+    delBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>`;
+    delBtn.onclick = (e) => { e.stopPropagation(); onDelete(); };
+    
+    actions.appendChild(pinBtn);
+    actions.appendChild(delBtn);
+    wrapper.appendChild(actions);
+    wrapper.appendChild(content);
+
+    // Desktop Hover Actions (Visible on PC hover)
+    const hoverPin = document.createElement('div');
+    hoverPin.className = 'card-pin';
+    hoverPin.title = isPinned ? '取消置顶' : '置顶';
+    hoverPin.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:${isPinned?'#FFC107':'#9E9E9E'}"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>`;
+    hoverPin.onclick = (e) => { e.stopPropagation(); onPin(); };
+
+    const hoverDel = document.createElement('div');
+    hoverDel.className = 'card-delete';
+    hoverDel.title = '删除';
+    hoverDel.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:#795548"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>`;
+    hoverDel.onclick = (e) => { e.stopPropagation(); onDelete(); };
+
+    wrapper.appendChild(hoverPin);
+    wrapper.appendChild(hoverDel);
+
+    // State on element
+    content._swipeState = 0; // 0 or -140
+    let startX = 0;
+    let currentX = 0;
+    const maxSwipe = 140; 
+    let isDragging = false;
+    
+    // Touch Events
+    content.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        content.style.transition = 'none';
+        isDragging = false;
+    }, {passive: true});
+    
+    content.addEventListener('touchmove', (e) => {
+        const x = e.touches[0].clientX;
+        const delta = x - startX;
+        let targetX = content._swipeState + delta;
+        
+        if (targetX > 0) targetX = 0;
+        if (targetX < -maxSwipe - 20) targetX = -maxSwipe - 20; 
+        
+        if (Math.abs(delta) > 5) {
+             isDragging = true;
+             content.style.transform = `translateX(${targetX}px)`;
+             currentX = targetX;
+        }
+    }, {passive: true});
+    
+    const endSwipe = () => {
+        content.style.transition = 'transform 0.2s ease-out';
+        let finalState = content._swipeState;
+        
+        if (content._swipeState === 0) {
+            if (currentX < -maxSwipe / 3) {
+                finalState = -maxSwipe;
+                // Close others
+                document.querySelectorAll('.swipe-content').forEach(el => {
+                    if(el !== content && el._swipeState !== 0) {
+                        el.style.transform = 'translateX(0)';
+                        el._swipeState = 0;
+                    }
+                });
+            } else {
+                finalState = 0;
+            }
+        } else {
+            if (currentX > -maxSwipe * 2/3) {
+                finalState = 0;
+            } else {
+                finalState = -maxSwipe;
+            }
+        }
+        
+        content.style.transform = `translateX(${finalState}px)`;
+        content._swipeState = finalState;
+        setTimeout(() => { isDragging = false; }, 50);
+    };
+
+    content.addEventListener('touchend', endSwipe);
+
+    // Mouse Events for PC Dragging
+    let isMouseDown = false;
+    content.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        startX = e.clientX;
+        content.style.transition = 'none';
+        isDragging = false;
+    });
+
+    content.addEventListener('mousemove', (e) => {
+        if(!isMouseDown) return;
+        e.preventDefault();
+        const x = e.clientX;
+        const delta = x - startX;
+        let targetX = content._swipeState + delta;
+        
+        if (targetX > 0) targetX = 0;
+        if (targetX < -maxSwipe - 20) targetX = -maxSwipe - 20; 
+        
+        if (Math.abs(delta) > 5) {
+             isDragging = true;
+             content.style.transform = `translateX(${targetX}px)`;
+             currentX = targetX;
+        }
+    });
+
+    content.addEventListener('mouseup', (e) => {
+        if(!isMouseDown) return;
+        isMouseDown = false;
+        endSwipe();
+    });
+    
+    content.addEventListener('mouseleave', (e) => {
+        if(isMouseDown) {
+            isMouseDown = false;
+            endSwipe();
+        }
+    });
+
+    content.addEventListener('click', (e) => {
+        if (isDragging) {
+             e.stopPropagation();
+             e.preventDefault();
+             return;
+        }
+        if (content._swipeState !== 0) {
+            content._swipeState = 0;
+            content.style.transform = `translateX(0)`;
+            e.stopPropagation();
+            return;
+        }
+        onClick();
+    });
+
+    return wrapper;
+}
+
+function renderUserView() {
+    currentView = 'user';
+    updateSidebar('user');
+    menuGrid.innerHTML = '';
+
+    const pinnedIds = JSON.parse(localStorage.getItem(PINNED_KEY) || '[]');
+    const allDrinks = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])];
+
+    const sortIds = (ids) => {
+        return ids.sort((a, b) => {
+            const isAPinned = pinnedIds.includes(a);
+            const isBPinned = pinnedIds.includes(b);
+            if (isAPinned && !isBPinned) return -1;
+            if (!isAPinned && isBPinned) return 1;
+            return 0;
+        });
+    };
+
+    // Create My Customs Section
+    const customSection = document.createElement('div');
+    customSection.id = 'section-custom';
+    
+    const customMap = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
+    
+    // FORCE EMPTY as per user request: "My Customs" should be empty for now
+    let customIds = [];
+    
+    // Original logic commented out for reference:
+    // let customIds = Object.keys(customMap);
+    // const favIdsForFilter = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    // customIds = customIds.filter(id => !favIdsForFilter.includes(id));
+    
+    if (customIds.length === 0) {
+        customSection.innerHTML = '<div style="padding:20px;color:#999;font-size:0.9rem;">暂无特调记录</div>';
+    } else {
+        customIds = sortIds(customIds);
+        customIds.forEach(id => {
+            const c = allDrinks.find(x => x.id === id);
+            if (!c) return;
+            const isPinned = pinnedIds.includes(id);
+            const item = createSwipeItem(c, isPinned,
+                // onPin
+                () => {
+                    const idx = pinnedIds.indexOf(id);
+                    if (idx > -1) pinnedIds.splice(idx, 1);
+                    else pinnedIds.unshift(id);
+                    localStorage.setItem(PINNED_KEY, JSON.stringify(pinnedIds));
+                    renderUserView();
+                },
+                // onDelete
+                () => {
+                    delete customMap[id];
+                    localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(customMap));
+                    renderUserView();
+                },
+                // onClick
+                () => openModal(c.id)
+            );
+            customSection.appendChild(item);
+        });
+    }
+    menuGrid.appendChild(customSection);
+
+    // Create Favorites Section
+    const favSection = document.createElement('div');
+    favSection.id = 'section-fav';
+    
+    let favIds = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+    
+    if (favIds.length === 0) {
+        favSection.innerHTML = '<div style="padding:20px;color:#999;font-size:0.9rem;">暂无收藏</div>';
+    } else {
+        favIds = sortIds(favIds);
+        favIds.forEach(id => {
+            const c = allDrinks.find(x => x.id === id);
+            if (!c) return;
+            const isPinned = pinnedIds.includes(id);
+            const item = createSwipeItem(c, isPinned,
+                // onPin
+                () => {
+                    const idx = pinnedIds.indexOf(id);
+                    if (idx > -1) pinnedIds.splice(idx, 1);
+                    else pinnedIds.unshift(id);
+                    localStorage.setItem(PINNED_KEY, JSON.stringify(pinnedIds));
+                    renderUserView();
+                },
+                // onDelete
+                () => {
+                    const newFavs = favIds.filter(fid => fid !== id);
+                    localStorage.setItem(FAVORITES_KEY, JSON.stringify(newFavs));
+                    renderUserView();
+                },
+                // onClick
+                () => openModal(c.id)
+            );
+            favSection.appendChild(item);
+        });
+    }
+    menuGrid.appendChild(favSection);
+
+    // Initial Active State
+    if (customTab) customTab.classList.add('active');
+    if (favTab) favTab.classList.remove('active');
+}
+
 renderHomeView();
 
 // Scroll Spy
 let isManualScroll = false;
 window.addEventListener('scroll', () => {
-    if (currentView !== 'home' || isManualScroll) return;
+    if (isManualScroll) return;
     
-    const coffeeSec = document.getElementById('section-coffee');
-    const liquorSec = document.getElementById('section-liquor');
-    
-    if (!coffeeSec || !liquorSec) return;
+    if (currentView === 'home') {
+        const coffeeSec = document.getElementById('section-coffee');
+        const liquorSec = document.getElementById('section-liquor');
+        if (!coffeeSec || !liquorSec) return;
 
-    // Check if at bottom of page
-    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 20) {
-        if (allTab) allTab.classList.remove('active');
-        if (liquorTab) liquorTab.classList.add('active');
-        return;
-    }
-    
-    // Simple logic: if liquor section top is near the top of viewport, activate liquor
-    const liquorRect = liquorSec.getBoundingClientRect();
-    // Use a threshold, e.g., 150px from top
-    if (liquorRect.top <= 150) {
-        if (allTab) allTab.classList.remove('active');
-        if (liquorTab) liquorTab.classList.add('active');
-    } else {
-        if (allTab) allTab.classList.add('active');
-        if (liquorTab) liquorTab.classList.remove('active');
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 20) {
+            if (allTab) allTab.classList.remove('active');
+            if (liquorTab) liquorTab.classList.add('active');
+            return;
+        }
+        
+        const liquorRect = liquorSec.getBoundingClientRect();
+        if (liquorRect.top <= 150) {
+            if (allTab) allTab.classList.remove('active');
+            if (liquorTab) liquorTab.classList.add('active');
+        } else {
+            if (allTab) allTab.classList.add('active');
+            if (liquorTab) liquorTab.classList.remove('active');
+        }
+    } else if (currentView === 'user') {
+        const customSec = document.getElementById('section-custom');
+        const favSec = document.getElementById('section-fav');
+        if (!customSec || !favSec) return;
+
+        if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 20) {
+            if (customTab) customTab.classList.remove('active');
+            if (favTab) favTab.classList.add('active');
+            return;
+        }
+        
+        const favRect = favSec.getBoundingClientRect();
+        if (favRect.top <= 150) {
+            if (customTab) customTab.classList.remove('active');
+            if (favTab) favTab.classList.add('active');
+        } else {
+            if (customTab) customTab.classList.add('active');
+            if (favTab) favTab.classList.remove('active');
+        }
     }
 });
 
@@ -182,12 +488,22 @@ function scrollToSection(id, tabId){
     if(!sec) return;
     
     // Update active tab immediately
-    if (tabId === 'allTab') {
-        if (allTab) allTab.classList.add('active');
-        if (liquorTab) liquorTab.classList.remove('active');
-    } else if (tabId === 'liquorTab') {
-        if (allTab) allTab.classList.remove('active');
-        if (liquorTab) liquorTab.classList.add('active');
+    if (currentView === 'home') {
+        if (tabId === 'allTab') {
+            if (allTab) allTab.classList.add('active');
+            if (liquorTab) liquorTab.classList.remove('active');
+        } else if (tabId === 'liquorTab') {
+            if (allTab) allTab.classList.remove('active');
+            if (liquorTab) liquorTab.classList.add('active');
+        }
+    } else if (currentView === 'user') {
+        if (tabId === 'customTab') {
+            if (customTab) customTab.classList.add('active');
+            if (favTab) favTab.classList.remove('active');
+        } else if (tabId === 'favTab') {
+            if (customTab) customTab.classList.remove('active');
+            if (favTab) favTab.classList.add('active');
+        }
     }
 
     // Disable scroll spy temporarily
@@ -201,14 +517,9 @@ function scrollToSection(id, tabId){
     // Flash highlight the first item in the section
     const firstItem = sec.querySelector('.menu-item');
     if(firstItem) {
-        // Remove class if it exists to restart animation
         firstItem.classList.remove('highlight-flash');
-        // Force reflow
         void firstItem.offsetWidth;
-        // Add class
         firstItem.classList.add('highlight-flash');
-        
-        // Cleanup after animation
         setTimeout(() => {
             firstItem.classList.remove('highlight-flash');
         }, 1000);
@@ -225,20 +536,23 @@ if(liquorTab) liquorTab.onclick = ()=>{
     scrollToSection('section-liquor', 'liquorTab');
 };
 
+if(customTab) customTab.onclick = ()=>{ 
+    scrollToSection('section-custom', 'customTab');
+};
+
+if(favTab) favTab.onclick = ()=>{ 
+    scrollToSection('section-fav', 'favTab');
+};
+
 if (homeTab) homeTab.onclick = ()=>{ 
     renderHomeView();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
-document.addEventListener('click', (e)=>{
-    if(!userDropdown.contains(e.target) && !userBtn.contains(e.target)){
-        userDropdown.classList.remove('open');
-    }
-});
-userBtn.onclick = ()=>{ 
-    userDropdown.style.left = userBtn.offsetLeft + 'px';
-    userDropdown.classList.toggle('open'); 
+
+if (userBtn) userBtn.onclick = ()=>{
+    renderUserView();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
-favAction.onclick = ()=>{ renderFavorites(); userDropdown.classList.remove('open'); };
 
 // 打开弹窗
 function openModal(id){
@@ -251,7 +565,8 @@ function openModal(id){
     stepsContainer.innerHTML='';
     const customMap = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
     const custom = Array.isArray(customMap[id]) ? customMap[id] : null;
-    const steps = (currentView === 'favorites' && custom && custom.length>0) ? custom : coffee.steps;
+    // Only show custom steps if in User view (Favorites/Customs)
+    const steps = (currentView === 'user' && custom && custom.length > 0) ? custom : coffee.steps;
     steps.forEach(s=>stepsContainer.innerHTML+=`<li>${s}</li>`);
     isEditingSteps = false;
     if (editBtn) editBtn.textContent = '编辑步骤';
@@ -311,13 +626,24 @@ document.getElementById('saveBtn').onclick = ()=>{
     const steps = inputs.length>0 
         ? inputs.map(i=>i.value.trim()).filter(v=>v.length>0)
         : listItems.map(li=>li.innerText.trim()).filter(v=>v.length>0);
+    
+    // Save to Favorites
     const favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     if(!favs.includes(item.id)) favs.unshift(item.id);
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
-    const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
-    map[item.id] = steps;
-    localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
-    showToast(currentView==='favorites' ? '已保存自定义步骤' : '已加入收藏并保存自定义');
+    
+    // Only save custom steps if edited (different from original)
+    // or if we are already in edit mode (to be safe)
+    const isDifferent = JSON.stringify(steps) !== JSON.stringify(item.steps);
+    
+    if (isDifferent || isEditingSteps) {
+        const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
+        map[item.id] = steps;
+        localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
+        showToast('已加入收藏并保存自定义步骤');
+    } else {
+        showToast('已加入收藏');
+    }
     closeModal();
 };
 
