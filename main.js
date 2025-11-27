@@ -9,6 +9,7 @@ const favAction = document.getElementById('favAction');
 const homeTab = document.getElementById('homeTab');
 const allTab = document.getElementById('allTab');
 const liquorTab = document.getElementById('liquorTab');
+const sidebar = document.getElementById('sidebar');
 const FAVORITES_KEY = 'coffeeFavorites';
 const CUSTOM_STEPS_KEY = 'coffeeCustomSteps';
 let isEditingSteps = false;
@@ -91,34 +92,112 @@ if (editBtn) editBtn.onclick = ()=>{ if(!isEditingSteps) startEditing(); else fi
 if (addBtn) addBtn.onclick = addStep;
 if (resetBtn) resetBtn.onclick = resetSteps;
 
-function renderAll(){
-    currentView = 'all';
+function updateSidebar(type) {
+    if (!sidebar) return;
+    // Show sidebar if in home mode (all or liquor) - now merged as 'home'
+    if (type === 'home' || type === 'all' || type === 'liquor') {
+        sidebar.style.display = 'flex';
+        // Active state is now handled by scroll spy, but we can set initial
+        if (type === 'all') {
+            if (allTab) allTab.classList.add('active');
+            if (liquorTab) liquorTab.classList.remove('active');
+        } else if (type === 'liquor') {
+            if (allTab) allTab.classList.remove('active');
+            if (liquorTab) liquorTab.classList.add('active');
+        }
+    } else {
+        sidebar.style.display = 'none';
+    }
+}
+
+function renderHomeView() {
+    currentView = 'home';
+    updateSidebar('home');
     menuGrid.innerHTML = '';
+    
+    // Create Coffee Section
+    const coffeeSection = document.createElement('div');
+    coffeeSection.id = 'section-coffee';
     coffeeData.forEach(c => {
         const item = document.createElement('div');
         item.className = 'menu-item';
         item.innerHTML = `<div class=\"menu-icon\">${c.icon}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
         item.onclick = ()=>openModal(c.id);
-        menuGrid.appendChild(item);
+        coffeeSection.appendChild(item);
     });
-}
-renderAll();
+    menuGrid.appendChild(coffeeSection);
 
-function renderLiquor(){
-    currentView = 'liquor';
-    menuGrid.innerHTML = '';
+    // Spacer or just append
+    
+    // Create Liquor Section
+    const liquorSection = document.createElement('div');
+    liquorSection.id = 'section-liquor';
     (typeof liquorData !== 'undefined' ? liquorData : []).forEach(c => {
         const item = document.createElement('div');
         item.className = 'menu-item';
         item.innerHTML = `<div class=\"menu-icon\">${c.icon || '🍸'}</div><div class=\"menu-name\">${(c.name || '').replace('\\n','<br>')}</div>`;
         item.onclick = ()=>openModal(c.id);
-        menuGrid.appendChild(item);
+        liquorSection.appendChild(item);
     });
+    menuGrid.appendChild(liquorSection);
+
+    // Initial Active State
+    if (allTab) allTab.classList.add('active');
+    if (liquorTab) liquorTab.classList.remove('active');
 }
 
-allTab.onclick = ()=>{ renderAll(); };
-liquorTab.onclick = ()=>{ renderLiquor(); };
-if (homeTab) homeTab.onclick = ()=>{ renderAll(); };
+renderHomeView();
+
+// Scroll Spy
+window.addEventListener('scroll', () => {
+    if (currentView !== 'home') return;
+    
+    const coffeeSec = document.getElementById('section-coffee');
+    const liquorSec = document.getElementById('section-liquor');
+    
+    if (!coffeeSec || !liquorSec) return;
+
+    // Check if at bottom of page
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 20) {
+        if (allTab) allTab.classList.remove('active');
+        if (liquorTab) liquorTab.classList.add('active');
+        return;
+    }
+    
+    // Simple logic: if liquor section top is near the top of viewport, activate liquor
+    const liquorRect = liquorSec.getBoundingClientRect();
+    // Use a threshold, e.g., 150px from top
+    if (liquorRect.top <= 150) {
+        if (allTab) allTab.classList.remove('active');
+        if (liquorTab) liquorTab.classList.add('active');
+    } else {
+        if (allTab) allTab.classList.add('active');
+        if (liquorTab) liquorTab.classList.remove('active');
+    }
+});
+
+function scrollToSection(id){
+    const sec = document.getElementById(id);
+    if(!sec) return;
+    // Calculate position relative to document, adjusting for sidebar top offset (20px)
+    const top = sec.getBoundingClientRect().top + window.scrollY - 20;
+    window.scrollTo({ top: top, behavior: 'smooth' });
+}
+
+if(allTab) allTab.onclick = ()=>{ 
+    if(currentView !== 'home') renderHomeView();
+    scrollToSection('section-coffee');
+};
+
+if(liquorTab) liquorTab.onclick = ()=>{ 
+    if(currentView !== 'home') renderHomeView();
+    scrollToSection('section-liquor');
+};
+
+if (homeTab) homeTab.onclick = ()=>{ 
+    renderHomeView();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
 document.addEventListener('click', (e)=>{
     if(!userDropdown.contains(e.target) && !userBtn.contains(e.target)){
         userDropdown.classList.remove('open');
@@ -214,6 +293,7 @@ document.getElementById('saveBtn').onclick = ()=>{
 // 渲染日志
 function renderFavorites(){
     currentView = 'favorites';
+    updateSidebar('favorites');
     const ids = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     menuGrid.innerHTML = '';
     ids.forEach(id=>{
