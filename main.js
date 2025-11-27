@@ -13,6 +13,12 @@ const sidebar = document.getElementById('sidebar');
 const FAVORITES_KEY = 'coffeeFavorites';
 const CUSTOM_STEPS_KEY = 'coffeeCustomSteps';
 const PINNED_KEY = 'coffeePinnedItems';
+const CUSTOM_RECIPES_KEY = 'customRecipes';
+const addCustomBtn = document.getElementById('addCustomBtn');
+const inputTitle = document.getElementById('inputTitle');
+const inputDesc = document.getElementById('inputDesc');
+const inputImage = document.getElementById('inputImage');
+const customInputs = document.getElementById('customInputs');
 
 // 临时清理逻辑：清除可能意外存在的默认特调数据
 try {
@@ -41,6 +47,8 @@ const editBtn = document.getElementById('editStepsBtn');
 const addBtn = document.getElementById('addStepBtn');
 const resetBtn = document.getElementById('resetStepsBtn');
 let currentView = 'home'; // 'home' or 'user'
+let isAddCustomMode = false;
+let tempImageData = null;
 
 function showToast(msg){
     const t = document.getElementById('toast');
@@ -53,8 +61,12 @@ function showToast(msg){
     window.__toastTimer = setTimeout(()=>{ t.classList.remove('show'); window.__toastTimer = null; }, 5000);
 }
 
+function getCustomRecipes(){
+    try { return JSON.parse(localStorage.getItem(CUSTOM_RECIPES_KEY) || '[]'); } catch(e){ return []; }
+}
+
 function getCurrentCoffee(){
-    return [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])].find(c=>c.id===currentCoffeeId);
+    return [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[]), ...getCustomRecipes()].find(c=>c.id===currentCoffeeId);
 }
 
 function renderStepsList(steps){
@@ -336,7 +348,7 @@ function renderUserView() {
     menuGrid.innerHTML = '';
 
     const pinnedIds = JSON.parse(localStorage.getItem(PINNED_KEY) || '[]');
-    const allDrinks = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])];
+    const allDrinks = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[]), ...getCustomRecipes()];
 
     const sortIds = (ids) => {
         return ids.sort((a, b) => {
@@ -351,27 +363,14 @@ function renderUserView() {
     // Create My Customs Section
     const customSection = document.createElement('div');
     customSection.id = 'section-custom';
-    
-    const customMap = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
-    
-    // FORCE EMPTY as per user request: "My Customs" should be empty for now
-    let customIds = [];
-    
-    // Original logic commented out for reference:
-    // let customIds = Object.keys(customMap);
-    // const favIdsForFilter = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
-    // customIds = customIds.filter(id => !favIdsForFilter.includes(id));
-    
-    if (customIds.length === 0) {
+    const recipes = getCustomRecipes();
+    if (!recipes || recipes.length === 0) {
         customSection.innerHTML = '<div style="padding:20px;color:#999;font-size:0.9rem;">暂无特调记录</div>';
     } else {
-        customIds = sortIds(customIds);
-        customIds.forEach(id => {
-            const c = allDrinks.find(x => x.id === id);
-            if (!c) return;
+        recipes.forEach(c => {
+            const id = c.id;
             const isPinned = pinnedIds.includes(id);
             const item = createSwipeItem(c, isPinned,
-                // onPin
                 () => {
                     const idx = pinnedIds.indexOf(id);
                     if (idx > -1) pinnedIds.splice(idx, 1);
@@ -379,13 +378,11 @@ function renderUserView() {
                     localStorage.setItem(PINNED_KEY, JSON.stringify(pinnedIds));
                     renderUserView();
                 },
-                // onDelete
                 () => {
-                    delete customMap[id];
-                    localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(customMap));
+                    const next = recipes.filter(r => r.id !== id);
+                    localStorage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(next));
                     renderUserView();
                 },
-                // onClick
                 () => openModal(c.id)
             );
             customSection.appendChild(item);
@@ -554,10 +551,51 @@ if (userBtn) userBtn.onclick = ()=>{
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
+function openAddCustomModal(){
+    isAddCustomMode = true;
+    currentCoffeeId = null;
+    tempImageData = null;
+    if (customInputs) customInputs.style.display = 'block';
+    const t = document.getElementById('rTitle');
+    const d = document.getElementById('rDesc');
+    if (t) t.style.display = 'none';
+    if (d) d.style.display = 'none';
+    if (inputTitle) inputTitle.value = '';
+    if (inputDesc) inputDesc.value = '';
+    if (inputImage) inputImage.value = '';
+    const list = document.getElementById('rSteps');
+    list.innerHTML = '';
+    const li = document.createElement('li');
+    const input = document.createElement('input');
+    input.className = 'step-input';
+    input.placeholder = '步骤描述';
+    li.appendChild(input);
+    list.appendChild(li);
+    isEditingSteps = true;
+    if (editBtn) editBtn.textContent = '完成编辑';
+    if (addBtn) addBtn.style.display = 'inline-block';
+    const tipsSection = document.getElementById('rTipsSection');
+    if (tipsSection) tipsSection.style.display = 'none';
+    rImage.src = '';
+    rImage.alt = '';
+    modalOverlay.classList.add('active');
+    document.body.style.overflow='hidden';
+}
+
+if (addCustomBtn) addCustomBtn.onclick = ()=>{ openAddCustomModal(); };
+
+if (inputImage) inputImage.onchange = (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; };
+    reader.readAsDataURL(file);
+};
+
 // 打开弹窗
 function openModal(id){
     currentCoffeeId=id;
-    const coffee=[...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])].find(c=>c.id===id);
+    const coffee=[...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[]), ...getCustomRecipes()].find(c=>c.id===id);
     document.getElementById('rTitle').innerText=coffee.name.replace('\n',' ');
     document.getElementById('rDesc').innerText=coffee.desc;
 
@@ -612,28 +650,54 @@ modalOverlay.onclick = e => { if(e.target===modalOverlay) closeModal(); };
 function closeModal(){
     modalOverlay.classList.remove('active');
     document.body.style.overflow='';
+    if (isAddCustomMode) {
+        isAddCustomMode = false;
+        tempImageData = null;
+        if (customInputs) customInputs.style.display = 'none';
+        const t = document.getElementById('rTitle');
+        const d = document.getElementById('rDesc');
+        if (t) t.style.display = '';
+        if (d) d.style.display = '';
+        const list = document.getElementById('rSteps');
+        list.innerHTML = '';
+    }
 }
 
 // 无调节模块
 
 // 保存日志
 document.getElementById('saveBtn').onclick = ()=>{
-    const item = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])].find(c=>c.id===currentCoffeeId);
-    if(!item){ closeModal(); return; }
     const currentList = document.getElementById('rSteps');
     const inputs = Array.from(currentList.querySelectorAll('input.step-input'));
     const listItems = Array.from(currentList.querySelectorAll('li'));
     const steps = inputs.length>0 
         ? inputs.map(i=>i.value.trim()).filter(v=>v.length>0)
         : listItems.map(li=>li.innerText.trim()).filter(v=>v.length>0);
+
+    if (isAddCustomMode) {
+        const name = (inputTitle && inputTitle.value ? inputTitle.value.trim() : '');
+        const desc = (inputDesc && inputDesc.value ? inputDesc.value.trim() : '');
+        if (!name) { showToast('请输入饮品名称'); return; }
+        const id = 'custom-' + Date.now();
+        const icon = '🧪';
+        const image = tempImageData || '';
+        const recipes = getCustomRecipes();
+        recipes.unshift({ id, name, desc, image, steps, icon });
+        localStorage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(recipes));
+        showToast('已保存到我的特调');
+        closeModal();
+        renderUserView();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+
+    const item = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])].find(c=>c.id===currentCoffeeId);
+    if(!item){ closeModal(); return; }
     
-    // Save to Favorites
     const favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     if(!favs.includes(item.id)) favs.unshift(item.id);
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
-    
-    // Only save custom steps if edited (different from original)
-    // or if we are already in edit mode (to be safe)
+
     const isDifferent = JSON.stringify(steps) !== JSON.stringify(item.steps);
     
     if (isDifferent || isEditingSteps) {

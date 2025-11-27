@@ -18,12 +18,13 @@
     <div class="subtitle">精准配比 · 实时计算 · 灵感记录</div>
 </header>
 
-<div class="section-title">
-    <div class="section-left">
-        <span class="section-item" id="homeTab">首页</span>
-        <span class="section-item" id="userBtn">我的</span>
+    <div class="section-title">
+        <div class="section-left">
+            <span class="section-item" id="homeTab">首页</span>
+            <span class="section-item" id="userBtn">我的</span>
+            <span class="section-item" id="addCustomBtn">添加特调</span>
+        </div>
     </div>
-</div>
 <div class="main-container" id="mainContainer">
     <aside class="sidebar" id="sidebar">
         <!-- Home View Tabs -->
@@ -45,6 +46,13 @@
             <div class="recipe-header">
                 <h2 class="recipe-title" id="rTitle">Coffee Name</h2>
                 <p class="recipe-desc" id="rDesc">Description</p>
+                <div id="customInputs" style="display:none; margin-top:10px;">
+                    <input id="inputTitle" class="step-input" placeholder="饮品名称">
+                    <textarea id="inputDesc" class="step-input" placeholder="描述" rows="3" style="margin-top:8px;"></textarea>
+                    <div style="margin-top:8px;">
+                        <input type="file" id="inputImage" accept="image/*" capture="environment">
+                    </div>
+                </div>
             </div>
 
             <div class="recipe-body">
@@ -82,7 +90,7 @@
 <div id="toast" aria-live="polite"></div>
 <script src="coffee-data.js"></script>
 <script src="liquor-data.js"></script>
-<script src="main.js"></script>
+<script src="main.js?v=2.3"></script>
 
 <script src="pwa/pwa-prompt.js"></script>
 </body>
