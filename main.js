@@ -6,6 +6,7 @@ const rImage = document.getElementById('rImage');
 const userBtn = document.getElementById('userBtn');
 const userDropdown = document.getElementById('userDropdown');
 const favAction = document.getElementById('favAction');
+const homeTab = document.getElementById('homeTab');
 const allTab = document.getElementById('allTab');
 const liquorTab = document.getElementById('liquorTab');
 const FAVORITES_KEY = 'coffeeFavorites';
@@ -14,6 +15,18 @@ let isEditingSteps = false;
 const editBtn = document.getElementById('editStepsBtn');
 const addBtn = document.getElementById('addStepBtn');
 const resetBtn = document.getElementById('resetStepsBtn');
+let currentView = 'all';
+
+function showToast(msg){
+    const t = document.getElementById('toast');
+    if(!t) return;
+    t.innerHTML = `<span class="toast-msg">${msg}</span><button class="toast-close" id="toastClose" aria-label="关闭">×</button>`;
+    t.classList.add('show');
+    if (window.__toastTimer) { clearTimeout(window.__toastTimer); }
+    const closeBtn = document.getElementById('toastClose');
+    if (closeBtn) closeBtn.onclick = ()=>{ t.classList.remove('show'); if (window.__toastTimer) { clearTimeout(window.__toastTimer); window.__toastTimer = null; } };
+    window.__toastTimer = setTimeout(()=>{ t.classList.remove('show'); window.__toastTimer = null; }, 5000);
+}
 
 function getCurrentCoffee(){
     return [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[])].find(c=>c.id===currentCoffeeId);
@@ -79,6 +92,7 @@ if (addBtn) addBtn.onclick = addStep;
 if (resetBtn) resetBtn.onclick = resetSteps;
 
 function renderAll(){
+    currentView = 'all';
     menuGrid.innerHTML = '';
     coffeeData.forEach(c => {
         const item = document.createElement('div');
@@ -91,6 +105,7 @@ function renderAll(){
 renderAll();
 
 function renderLiquor(){
+    currentView = 'liquor';
     menuGrid.innerHTML = '';
     (typeof liquorData !== 'undefined' ? liquorData : []).forEach(c => {
         const item = document.createElement('div');
@@ -103,6 +118,7 @@ function renderLiquor(){
 
 allTab.onclick = ()=>{ renderAll(); };
 liquorTab.onclick = ()=>{ renderLiquor(); };
+if (homeTab) homeTab.onclick = ()=>{ renderAll(); };
 document.addEventListener('click', (e)=>{
     if(!userDropdown.contains(e.target) && !userBtn.contains(e.target)){
         userDropdown.classList.remove('open');
@@ -124,10 +140,8 @@ function openModal(id){
     const stepsContainer=document.getElementById('rSteps');
     stepsContainer.innerHTML='';
     const customMap = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
-    const favsForCheck = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     const custom = Array.isArray(customMap[id]) ? customMap[id] : null;
-    const useCustom = favsForCheck.includes(id) && custom && custom.length>0;
-    const steps = useCustom ? custom : coffee.steps;
+    const steps = (currentView === 'favorites' && custom && custom.length>0) ? custom : coffee.steps;
     steps.forEach(s=>stepsContainer.innerHTML+=`<li>${s}</li>`);
     isEditingSteps = false;
     if (editBtn) editBtn.textContent = '编辑步骤';
@@ -187,17 +201,19 @@ document.getElementById('saveBtn').onclick = ()=>{
     const steps = inputs.length>0 
         ? inputs.map(i=>i.value.trim()).filter(v=>v.length>0)
         : listItems.map(li=>li.innerText.trim()).filter(v=>v.length>0);
-    const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
-    map[item.id] = steps;
-    localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
     const favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     if(!favs.includes(item.id)) favs.unshift(item.id);
     localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
+    const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
+    map[item.id] = steps;
+    localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
+    showToast(currentView==='favorites' ? '已保存自定义步骤' : '已加入收藏并保存自定义');
     closeModal();
 };
 
 // 渲染日志
 function renderFavorites(){
+    currentView = 'favorites';
     const ids = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     menuGrid.innerHTML = '';
     ids.forEach(id=>{
