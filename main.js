@@ -149,8 +149,9 @@ function renderHomeView() {
 renderHomeView();
 
 // Scroll Spy
+let isManualScroll = false;
 window.addEventListener('scroll', () => {
-    if (currentView !== 'home') return;
+    if (currentView !== 'home' || isManualScroll) return;
     
     const coffeeSec = document.getElementById('section-coffee');
     const liquorSec = document.getElementById('section-liquor');
@@ -176,22 +177,52 @@ window.addEventListener('scroll', () => {
     }
 });
 
-function scrollToSection(id){
+function scrollToSection(id, tabId){
     const sec = document.getElementById(id);
     if(!sec) return;
+    
+    // Update active tab immediately
+    if (tabId === 'allTab') {
+        if (allTab) allTab.classList.add('active');
+        if (liquorTab) liquorTab.classList.remove('active');
+    } else if (tabId === 'liquorTab') {
+        if (allTab) allTab.classList.remove('active');
+        if (liquorTab) liquorTab.classList.add('active');
+    }
+
+    // Disable scroll spy temporarily
+    isManualScroll = true;
+    setTimeout(() => { isManualScroll = false; }, 800);
+
     // Calculate position relative to document, adjusting for sidebar top offset (20px)
     const top = sec.getBoundingClientRect().top + window.scrollY - 20;
     window.scrollTo({ top: top, behavior: 'smooth' });
+
+    // Flash highlight the first item in the section
+    const firstItem = sec.querySelector('.menu-item');
+    if(firstItem) {
+        // Remove class if it exists to restart animation
+        firstItem.classList.remove('highlight-flash');
+        // Force reflow
+        void firstItem.offsetWidth;
+        // Add class
+        firstItem.classList.add('highlight-flash');
+        
+        // Cleanup after animation
+        setTimeout(() => {
+            firstItem.classList.remove('highlight-flash');
+        }, 1000);
+    }
 }
 
 if(allTab) allTab.onclick = ()=>{ 
     if(currentView !== 'home') renderHomeView();
-    scrollToSection('section-coffee');
+    scrollToSection('section-coffee', 'allTab');
 };
 
 if(liquorTab) liquorTab.onclick = ()=>{ 
     if(currentView !== 'home') renderHomeView();
-    scrollToSection('section-liquor');
+    scrollToSection('section-liquor', 'liquorTab');
 };
 
 if (homeTab) homeTab.onclick = ()=>{ 

@@ -108,7 +108,6 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
     gap: 0;
     width: 100%;
     margin-bottom: 0;
-    padding-bottom: 80vh; /* Allow scrolling last item to top */
 }
 @media (max-width: 600px) { .menu-grid { grid-template-columns: none; gap: 0; } }
 
@@ -256,6 +255,16 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
     margin-top:20px; display:flex; align-items:center; justify-content:center; gap:10px;
 }
 .save-btn:active { background-color:#5d4037; }
+
+@keyframes flash-highlight {
+    0% { background-color: rgba(121, 85, 72, 0); }
+    30% { background-color: rgba(121, 85, 72, 0.15); }
+    100% { background-color: rgba(121, 85, 72, 0); }
+}
+
+.highlight-flash {
+    animation: flash-highlight 1s ease-out;
+}
 
 .menu-item:focus-visible, .close-btn:focus-visible, .save-btn:focus-visible {
     outline: 2px solid var(--accent-brown);
