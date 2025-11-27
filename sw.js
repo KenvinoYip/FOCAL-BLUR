@@ -1,4 +1,4 @@
-const CACHE_NAME = 'coffee-daily-v2.1';
+const CACHE_NAME = 'coffee-daily-v2.2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -12,6 +12,7 @@ const ASSETS_TO_CACHE = [
 ];
 
 self.addEventListener('install', (e) => {
+  self.skipWaiting(); // 强制跳过等待，立即激活
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return cache.addAll(ASSETS_TO_CACHE);
@@ -21,12 +22,15 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(keys.map((k) => {
-        if (k !== CACHE_NAME) return caches.delete(k);
-        return Promise.resolve();
-      }));
-    })
+    Promise.all([
+      self.clients.claim(), // 立即控制所有页面
+      caches.keys().then((keys) => {
+        return Promise.all(keys.map((k) => {
+          if (k !== CACHE_NAME) return caches.delete(k);
+          return Promise.resolve();
+        }));
+      })
+    ])
   );
 });
 
