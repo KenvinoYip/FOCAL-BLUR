@@ -49,8 +49,14 @@
                 <div id="customInputs" style="display:none; margin-top:10px;">
                     <input id="inputTitle" class="step-input" placeholder="饮品名称">
                     <textarea id="inputDesc" class="step-input" placeholder="描述" rows="3" style="margin-top:8px;"></textarea>
-                    <div style="margin-top:8px;">
-                        <input type="file" id="inputImage" accept="image/*" capture="environment">
+                    <div class="upload-row">
+                        <input type="file" id="inputImage" accept="image/*" style="display:none">
+                        <input type="file" id="inputImageCamera" accept="image/*" capture="environment" style="display:none">
+                        <div id="uploadTile" class="upload-tile"><span class="plus">+</span></div>
+                        <div id="uploadChoices" class="upload-choices" style="display:none;">
+                            <button id="chooseGallery" class="small-btn">相册</button>
+                            <button id="chooseCamera" class="small-btn">拍照</button>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -18,6 +18,11 @@ const addCustomBtn = document.getElementById('addCustomBtn');
 const inputTitle = document.getElementById('inputTitle');
 const inputDesc = document.getElementById('inputDesc');
 const inputImage = document.getElementById('inputImage');
+const inputImageCamera = document.getElementById('inputImageCamera');
+const uploadTile = document.getElementById('uploadTile');
+const uploadChoices = document.getElementById('uploadChoices');
+const chooseGallery = document.getElementById('chooseGallery');
+const chooseCamera = document.getElementById('chooseCamera');
 const customInputs = document.getElementById('customInputs');
 
 // 临时清理逻辑：清除可能意外存在的默认特调数据
@@ -578,6 +583,7 @@ function openAddCustomModal(){
     if (tipsSection) tipsSection.style.display = 'none';
     rImage.src = '';
     rImage.alt = '';
+    if (uploadChoices) uploadChoices.style.display = 'none';
     modalOverlay.classList.add('active');
     document.body.style.overflow='hidden';
 }
@@ -590,6 +596,36 @@ if (inputImage) inputImage.onchange = (e)=>{
     const reader = new FileReader();
     reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; };
     reader.readAsDataURL(file);
+};
+
+if (inputImageCamera) inputImageCamera.onchange = (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; };
+    reader.readAsDataURL(file);
+};
+
+function isMobile(){
+    return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+}
+
+if (uploadTile) uploadTile.onclick = ()=>{
+    if (isMobile()) {
+        if (uploadChoices) uploadChoices.style.display = 'flex';
+    } else {
+        if (inputImage) inputImage.click();
+    }
+};
+
+if (chooseGallery) chooseGallery.onclick = ()=>{
+    if (uploadChoices) uploadChoices.style.display = 'none';
+    if (inputImage) inputImage.click();
+};
+
+if (chooseCamera) chooseCamera.onclick = ()=>{
+    if (uploadChoices) uploadChoices.style.display = 'none';
+    if (inputImageCamera) inputImageCamera.click();
 };
 
 // 打开弹窗
@@ -660,6 +696,7 @@ function closeModal(){
         if (d) d.style.display = '';
         const list = document.getElementById('rSteps');
         list.innerHTML = '';
+        if (uploadChoices) uploadChoices.style.display = 'none';
     }
 }
 
