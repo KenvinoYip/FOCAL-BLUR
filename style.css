@@ -241,6 +241,11 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
 .upload-tile .plus { font-size:32px; color: var(--accent-brown); line-height:1; }
 .upload-choices { display:flex; gap:8px; }
 
+.confirm-card { background: var(--card-bg); width:100%; max-width:360px; display:flex; flex-direction:column; border-radius:12px; box-shadow:0 15px 40px rgba(0,0,0,0.25); border: 1px solid rgba(121,85,72,0.15); transform: translateY(20px); transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding:20px; }
+.modal-overlay.active .confirm-card { transform: translateY(0); }
+.confirm-title { font-weight:600; font-size:1rem; margin-bottom:12px; }
+.confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
+
 #rSteps { line-height: 1.7; }
 #rSteps li { margin: 6px 0; }
 

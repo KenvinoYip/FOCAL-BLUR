@@ -86,7 +86,7 @@
                 </div>
 
                 <button class="save-btn" id="saveBtn">
-                    <span>💾 保存配方</span>
+                    <span>保存配方</span>
                 </button>
             </div>
         </div>
@@ -94,6 +94,15 @@
 </div>
 
 <div id="toast" aria-live="polite"></div>
+<div class="modal-overlay" id="confirmOverlay">
+    <div class="confirm-card">
+        <div class="confirm-title">检测到步骤变更</div>
+        <div class="confirm-actions">
+            <button id="overwriteBtn" class="small-btn">覆盖原有版本</button>
+            <button id="duplicateBtn" class="small-btn">新建配方</button>
+        </div>
+    </div>
+</div>
 <script src="coffee-data.js"></script>
 <script src="liquor-data.js"></script>
 <script src="main.js?v=2.3"></script>
