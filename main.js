@@ -34,6 +34,29 @@ const overlayUploadTile = document.getElementById('overlayUploadTile');
 const overlayUploadChoices = document.getElementById('overlayUploadChoices');
 const overlayChooseGallery = document.getElementById('overlayChooseGallery');
 const overlayChooseCamera = document.getElementById('overlayChooseCamera');
+// 冻结区尺寸写入 CSS 变量：--header-h、--nav-h、--freeze-h 供布局偏移计算
+const headerEl = document.querySelector('header');
+const sectionTitleEl = document.querySelector('.section-title');
+function updateHeaderHeightVar(){
+  const h = headerEl ? headerEl.offsetHeight : 0; // 顶部标题高度
+  const n = sectionTitleEl ? sectionTitleEl.offsetHeight : 0; // 导航行高度
+  const f = h + n; // 冻结区总高度
+  const root = document.documentElement;
+  root.style.setProperty('--header-h', h + 'px');
+  root.style.setProperty('--nav-h', n + 'px');
+  root.style.setProperty('--freeze-h', f + 'px');
+}
+// 多次刷新高度，避免首帧/字体加载导致测量不准：立即、下一帧、延时 200ms
+function scheduleFreezeUpdate(){
+  updateHeaderHeightVar();
+  requestAnimationFrame(updateHeaderHeightVar);
+  setTimeout(updateHeaderHeightVar, 200);
+}
+scheduleFreezeUpdate();
+window.addEventListener('resize', scheduleFreezeUpdate);
+window.addEventListener('load', scheduleFreezeUpdate);
+// 字体就绪后再刷新一次，确保排版最终高度正确
+if (document.fonts && document.fonts.ready) { document.fonts.ready.then(scheduleFreezeUpdate); }
 
 // 临时清理逻辑：清除可能意外存在的默认特调数据
 try {
@@ -50,12 +73,9 @@ try {
         });
         if (changed) {
             localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
-            console.log('Cleaned up default custom steps:', toRemove);
         }
     }
-} catch (e) {
-    console.error('Error cleaning up custom steps:', e);
-}
+} catch (e) {}
 
 let isEditingSteps = false;
 const editBtn = document.getElementById('editStepsBtn');

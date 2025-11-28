@@ -12,8 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const isInStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log('Service Worker Registered'));
+    navigator.serviceWorker.register('./sw.js');
   }
 
   if (!DEBUG_INSTALL && (isInStandaloneMode || (!isIOS && !isAndroid))) return;

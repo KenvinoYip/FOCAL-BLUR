@@ -10,6 +10,11 @@
     --foam-color: #ffffff;
     --water-color: #b3e5fc;
 }
+/* 布局高度变量（由 JS 写入）：
+   --header-h 顶部标题高度
+   --nav-h    导航行高度
+   --freeze-h 冻结区总高度 = header + nav
+   说明：主内容与侧栏通过这些变量计算起始位置，确保上滑时不会露入冻结区。*/
 
 * { box-sizing: border-box; }
 
@@ -23,19 +28,23 @@ body {
     flex-direction: column;
     align-items: center;
     min-height: 100vh;
+    overscroll-behavior-y: contain;
 }
 
-header { text-align: center; max-width: 800px; margin-bottom: 30px; }
-h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; }
+/* 顶部标题：固定冻结在页面顶部，宽度跟随页面留左右 20px 边距 */
+header { text-align: center; max-width: 800px; margin-bottom: 30px; position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 900; background: var(--bg-color); width: calc(100% - 40px); padding-top: 24px; padding-bottom: 24px; }
+h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; }
 .subtitle { color: var(--accent-brown); font-size: 0.9rem; opacity: 0.9; }
 
+/* 导航行：固定在标题正下方（使用 --header-h 与内边距 8px 作为偏移） */
 .section-title {
-    width: 100%; max-width: 800px;
+    width: calc(100% - 40px); max-width: 900px; /* 导航最大宽度（当前按你的视觉设置为 900px） */
     margin: 0 auto 15px;
     font-size: 1.1rem;
     border-bottom: 2px solid #eaddcf;
-    padding-bottom: 5px;
-    display: flex; justify-content: space-between; align-items: flex-end;
+    padding-top: 8px;
+    padding-bottom: 10px;
+    display: flex; justify-content: space-between; align-items: flex-end; position: fixed; top: var(--header-h, 0px); left: 50%; transform: translateX(-50%); z-index: 800; background: var(--bg-color);
 }
 .clear-log { font-size:0.8rem; color:#999; cursor:pointer; }
 
@@ -52,14 +61,18 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
 .dropdown-item { padding: 10px 12px; font-size: 0.9rem; cursor: pointer; }
 .dropdown-item:hover { background: #f7f3ee; }
 
+/* 主内容容器：从冻结区下方开始，使用 --header-h 与 --nav-h 计算偏移 */
 .main-container {
     display: flex;
     width: 100%;
     max-width: 800px;
     gap: 15px;
     margin-bottom: 50px;
+    margin-top: 0;
+    padding-top: var(--freeze-h, 0px);
 }
 
+/* 左侧栏：与冻结区对齐，内容较少时仍保持固定位置 */
 .sidebar {
     width: 120px;
     flex-shrink: 0;
@@ -67,7 +80,7 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
     flex-direction: column;
     gap: 5px;
     position: sticky;
-    top: 20px;
+    top: calc(var(--freeze-h, 0px) + 20px);
     height: fit-content;
 }
 
