@@ -27,6 +27,12 @@ const customInputs = document.getElementById('customInputs');
 const confirmOverlay = document.getElementById('confirmOverlay');
 const overwriteBtn = document.getElementById('overwriteBtn');
 const duplicateBtn = document.getElementById('duplicateBtn');
+const overlayInputImage = document.getElementById('overlayInputImage');
+const overlayInputImageCamera = document.getElementById('overlayInputImageCamera');
+const overlayUploadTile = document.getElementById('overlayUploadTile');
+const overlayUploadChoices = document.getElementById('overlayUploadChoices');
+const overlayChooseGallery = document.getElementById('overlayChooseGallery');
+const overlayChooseCamera = document.getElementById('overlayChooseCamera');
 
 // 临时清理逻辑：清除可能意外存在的默认特调数据
 try {
@@ -58,6 +64,7 @@ let currentView = 'home'; // 'home' or 'user'
 let isAddCustomMode = false;
 let tempImageData = null;
 let currentItemSource = null; // 'home' | 'custom' | 'fav'
+let origImageData = '';
 
 function showToast(msg){
     const t = document.getElementById('toast');
@@ -598,7 +605,10 @@ function openAddCustomModal(){
     if (tipsSection) tipsSection.style.display = 'none';
     rImage.src = '';
     rImage.alt = '';
-    if (uploadChoices) uploadChoices.style.display = 'none';
+    rImage.style.display = 'none';
+    const imageOverlay = document.getElementById('imageAddOverlay');
+    if (imageOverlay) imageOverlay.style.display = 'flex';
+    if (overlayUploadChoices) overlayUploadChoices.style.display = 'none';
     modalOverlay.classList.add('active');
     document.body.style.overflow='hidden';
 }
@@ -609,7 +619,7 @@ if (inputImage) inputImage.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; };
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display = 'block'; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
     reader.readAsDataURL(file);
 };
 
@@ -617,7 +627,23 @@ if (inputImageCamera) inputImageCamera.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; };
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display = 'block'; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
+    reader.readAsDataURL(file);
+};
+
+if (overlayInputImage) overlayInputImage.onchange = (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display = 'block'; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
+    reader.readAsDataURL(file);
+};
+
+if (overlayInputImageCamera) overlayInputImageCamera.onchange = (e)=>{
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display = 'block'; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
     reader.readAsDataURL(file);
 };
 
@@ -641,6 +667,24 @@ if (chooseGallery) chooseGallery.onclick = ()=>{
 if (chooseCamera) chooseCamera.onclick = ()=>{
     if (uploadChoices) uploadChoices.style.display = 'none';
     if (inputImageCamera) inputImageCamera.click();
+};
+
+if (overlayUploadTile) overlayUploadTile.onclick = ()=>{
+    if (isMobile()) {
+        if (overlayUploadChoices) overlayUploadChoices.style.display = 'flex';
+    } else {
+        if (overlayInputImage) overlayInputImage.click();
+    }
+};
+
+if (overlayChooseGallery) overlayChooseGallery.onclick = ()=>{
+    if (overlayUploadChoices) overlayUploadChoices.style.display = 'none';
+    if (overlayInputImage) overlayInputImage.click();
+};
+
+if (overlayChooseCamera) overlayChooseCamera.onclick = ()=>{
+    if (overlayUploadChoices) overlayUploadChoices.style.display = 'none';
+    if (overlayInputImageCamera) overlayInputImageCamera.click();
 };
 
 // 打开弹窗
@@ -687,9 +731,23 @@ function openModal(id, source){
         tipsSection.style.display='none';
     }
 
-    
-
-    rImage.src = coffee.image || (`images/${coffee.id}.jpg`);
+    origImageData = coffee.image || '';
+    const imageOverlay = document.getElementById('imageAddOverlay');
+    if (String(coffee.id).startsWith('custom-')) {
+        if (origImageData) {
+            rImage.src = origImageData;
+            rImage.style.display = 'block';
+            if (imageOverlay) imageOverlay.style.display = 'none';
+        } else {
+            rImage.src = '';
+            rImage.style.display = 'none';
+            if (imageOverlay) imageOverlay.style.display = 'flex';
+        }
+    } else {
+        rImage.src = coffee.image || (`images/${coffee.id}.jpg`);
+        rImage.style.display = 'block';
+        if (imageOverlay) imageOverlay.style.display = 'none';
+    }
     rImage.alt = coffee.name.replace('\n',' ');
 
     modalOverlay.classList.add('active');
@@ -715,6 +773,8 @@ function closeModal(){
         if (uploadChoices) uploadChoices.style.display = 'none';
     }
     if (confirmOverlay) confirmOverlay.classList.remove('active');
+    const imageOverlay2 = document.getElementById('imageAddOverlay');
+    if (imageOverlay2) imageOverlay2.style.display = 'none';
     currentItemSource = null;
 }
 
@@ -749,8 +809,9 @@ document.getElementById('saveBtn').onclick = ()=>{
     const item = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[]), ...getCustomRecipes()].find(c=>c.id===currentCoffeeId);
     if(!item){ closeModal(); return; }
     const isDifferent = JSON.stringify(steps) !== JSON.stringify(item.steps);
+    const imageChanged = String(item.id).startsWith('custom-') && !!tempImageData && (tempImageData !== (item.image || ''));
     
-    if (currentView === 'user' && (isDifferent || isEditingSteps)) {
+    if (currentView === 'user' && (isDifferent || isEditingSteps || imageChanged)) {
         if (confirmOverlay) confirmOverlay.classList.add('active');
         const cleanup = ()=>{
             if (confirmOverlay) confirmOverlay.classList.remove('active');
@@ -763,6 +824,7 @@ document.getElementById('saveBtn').onclick = ()=>{
                 const idx = recipes.findIndex(r=>r.id===item.id);
                 if (idx>-1) {
                     recipes[idx].steps = steps;
+                    if (imageChanged) { recipes[idx].image = tempImageData; }
                     localStorage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(recipes));
                 }
             } else {
@@ -783,7 +845,7 @@ document.getElementById('saveBtn').onclick = ()=>{
                 id: newId,
                 name: item.name,
                 desc: item.desc,
-                image: item.image || '',
+                image: imageChanged ? tempImageData : (item.image || ''),
                 steps: steps,
                 icon: item.icon || '🧪',
                 scope

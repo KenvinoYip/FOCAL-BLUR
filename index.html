@@ -49,21 +49,21 @@
                 <div id="customInputs" style="display:none; margin-top:10px;">
                     <input id="inputTitle" class="step-input" placeholder="饮品名称">
                     <textarea id="inputDesc" class="step-input" placeholder="描述" rows="3" style="margin-top:8px;"></textarea>
-                    <div class="upload-row">
-                        <input type="file" id="inputImage" accept="image/*" style="display:none">
-                        <input type="file" id="inputImageCamera" accept="image/*" capture="environment" style="display:none">
-                        <div id="uploadTile" class="upload-tile"><span class="plus">+</span></div>
-                        <div id="uploadChoices" class="upload-choices" style="display:none;">
-                            <button id="chooseGallery" class="small-btn">相册</button>
-                            <button id="chooseCamera" class="small-btn">拍照</button>
-                        </div>
-                    </div>
                 </div>
             </div>
 
             <div class="recipe-body">
                 <div class="image-container">
                     <img id="rImage" class="recipe-image" alt="">
+                    <div class="image-add-overlay" id="imageAddOverlay" style="display:none;">
+                        <div class="upload-tile" id="overlayUploadTile"><span class="plus">+</span></div>
+                        <div class="upload-choices" id="overlayUploadChoices" style="display:none; margin-top:8px;">
+                            <button id="overlayChooseGallery" class="small-btn">从相册</button>
+                            <button id="overlayChooseCamera" class="small-btn">拍照</button>
+                        </div>
+                        <input type="file" id="overlayInputImage" accept="image/*" style="display:none;"/>
+                        <input type="file" id="overlayInputImageCamera" accept="image/*" capture="environment" style="display:none;"/>
+                    </div>
                 </div>
 
                 
