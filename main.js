@@ -606,9 +606,11 @@ function openAddCustomModal(){
     rImage.src = '';
     rImage.alt = '';
     rImage.style.display = 'none';
-    const imageOverlay = document.getElementById('imageAddOverlay');
-    if (imageOverlay) imageOverlay.style.display = 'flex';
-    if (overlayUploadChoices) overlayUploadChoices.style.display = 'none';
+    const overlayAdd = document.getElementById('imageAddOverlay');
+    if (overlayAdd) overlayAdd.style.display = 'flex';
+    const overlayChoices2 = document.getElementById('overlayUploadChoices');
+    if (overlayChoices2) overlayChoices2.style.display = 'none';
+    if (uploadChoices) uploadChoices.style.display = 'none';
     modalOverlay.classList.add('active');
     document.body.style.overflow='hidden';
 }
@@ -619,7 +621,7 @@ if (inputImage) inputImage.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display = 'block'; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display=''; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
     reader.readAsDataURL(file);
 };
 
@@ -627,7 +629,7 @@ if (inputImageCamera) inputImageCamera.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display = 'block'; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display=''; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
     reader.readAsDataURL(file);
 };
 
@@ -635,7 +637,7 @@ if (overlayInputImage) overlayInputImage.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display = 'block'; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display=''; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
     reader.readAsDataURL(file);
 };
 
@@ -643,7 +645,7 @@ if (overlayInputImageCamera) overlayInputImageCamera.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display = 'block'; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
+    reader.onload = ()=>{ tempImageData = reader.result; rImage.src = tempImageData; rImage.style.display=''; const overlay = document.getElementById('imageAddOverlay'); if (overlay) overlay.style.display='none'; };
     reader.readAsDataURL(file);
 };
 
@@ -692,8 +694,11 @@ function openModal(id, source){
     currentCoffeeId=id;
     currentItemSource = source || null;
     const coffee=[...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[]), ...getCustomRecipes()].find(c=>c.id===id);
-    document.getElementById('rTitle').innerText=coffee.name.replace('\n',' ');
+    // 仅更新标题文本节点，避免覆盖内嵌的返回键结构
+    const rTitleTextEl = document.getElementById('rTitleText');
+    if (rTitleTextEl) rTitleTextEl.innerText = coffee.name.replace('\n',' ');
     document.getElementById('rDesc').innerText=coffee.desc;
+    __resetSwipe();
 
     const stepsContainer=document.getElementById('rSteps');
     stepsContainer.innerHTML='';
@@ -736,7 +741,7 @@ function openModal(id, source){
     if (String(coffee.id).startsWith('custom-')) {
         if (origImageData) {
             rImage.src = origImageData;
-            rImage.style.display = 'block';
+            rImage.style.display = '';
             if (imageOverlay) imageOverlay.style.display = 'none';
         } else {
             rImage.src = '';
@@ -745,7 +750,7 @@ function openModal(id, source){
         }
     } else {
         rImage.src = coffee.image || (`images/${coffee.id}.jpg`);
-        rImage.style.display = 'block';
+        rImage.style.display = '';
         if (imageOverlay) imageOverlay.style.display = 'none';
     }
     rImage.alt = coffee.name.replace('\n',' ');
@@ -755,11 +760,29 @@ function openModal(id, source){
 }
 
 // 关闭弹窗
-document.getElementById('closeBtn').onclick = closeModal;
+const __closeBtn = document.getElementById('closeBtn');
+if (__closeBtn) __closeBtn.onclick = closeModal;
+const __backBtn = document.getElementById('backBtn');
+if (__backBtn) __backBtn.onclick = closeModal;
 modalOverlay.onclick = e => { if(e.target===modalOverlay) closeModal(); };
+const __recipeCard = document.querySelector('.recipe-card');
+const __recipeScroll = document.querySelector('.recipe-content-scroll');
+let __swipeStartX = 0;
+let __swipeStartY = 0;
+let __swipeDX = 0;
+function __resetSwipe(){ __swipeStartX = 0; __swipeStartY = 0; __swipeDX = 0; if (__recipeCard) { __recipeCard.style.transition=''; __recipeCard.style.transform=''; } }
+function __onTouchStart(e){ if (!__recipeCard) return; const t = e.touches && e.touches[0]; if (!t) return; __swipeStartX = t.clientX; __swipeStartY = t.clientY; __recipeCard.style.transition = 'none'; }
+function __onTouchMove(e){ if (!__recipeCard) return; const t = e.touches && e.touches[0]; if (!t) return; const dx = t.clientX - __swipeStartX; const dy = t.clientY - __swipeStartY; __swipeDX = dx; if (Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy)) { e.preventDefault(); const x = Math.max(0, dx); __recipeCard.style.transform = `translateX(${x}px)`; } }
+function __onTouchEnd(){ if (!__recipeCard) return; __recipeCard.style.transition = 'transform 0.2s ease'; if (__swipeDX > 120) { __resetSwipe(); closeModal(); } else { __resetSwipe(); } }
+if (__recipeScroll) {
+  __recipeScroll.addEventListener('touchstart', __onTouchStart, {passive:true});
+  __recipeScroll.addEventListener('touchmove', __onTouchMove, {passive:false});
+  __recipeScroll.addEventListener('touchend', __onTouchEnd, {passive:true});
+}
 function closeModal(){
     modalOverlay.classList.remove('active');
     document.body.style.overflow='';
+    __resetSwipe();
     if (isAddCustomMode) {
         isAddCustomMode = false;
         tempImageData = null;
