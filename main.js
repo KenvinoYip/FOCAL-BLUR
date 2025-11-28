@@ -165,7 +165,8 @@ function renderHomeView() {
     coffeeData.forEach(c => {
         const item = document.createElement('div');
         item.className = 'menu-item';
-        item.innerHTML = `<div class=\"menu-icon\">${c.icon}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
+        const iconHtml = c.image ? `<img class=\"menu-thumb\" src=\"${c.image}\" alt=\"\">` : `${c.icon}`;
+        item.innerHTML = `<div class=\"menu-icon\">${iconHtml}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
         item.onclick = ()=>{ 
             item.classList.remove('highlight-flash');
             void item.offsetWidth;
@@ -183,7 +184,8 @@ function renderHomeView() {
     (typeof liquorData !== 'undefined' ? liquorData : []).forEach(c => {
         const item = document.createElement('div');
         item.className = 'menu-item';
-        item.innerHTML = `<div class=\"menu-icon\">${c.icon || '🍸'}</div><div class=\"menu-name\">${(c.name || '').replace('\\n','<br>')}</div>`;
+        const iconHtml = c.image ? `<img class=\"menu-thumb\" src=\"${c.image}\" alt=\"\">` : `${c.icon || '🍸'}`;
+        item.innerHTML = `<div class=\"menu-icon\">${iconHtml}</div><div class=\"menu-name\">${(c.name || '').replace('\\n','<br>')}</div>`;
         item.onclick = ()=>{ 
             item.classList.remove('highlight-flash');
             void item.offsetWidth;
@@ -207,7 +209,8 @@ function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
     const content = document.createElement('div');
     content.className = 'swipe-content';
     if (isPinned) content.style.backgroundColor = '#fffbf0'; 
-    content.innerHTML = `<div class=\"menu-icon\">${c.icon}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
+    const iconHtml = c.image ? `<img class=\"menu-thumb\" src=\"${c.image}\" alt=\"\">` : `${c.icon}`;
+    content.innerHTML = `<div class=\"menu-icon\">${iconHtml}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
 
     const actions = document.createElement('div');
     actions.className = 'swipe-actions';
