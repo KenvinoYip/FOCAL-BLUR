@@ -27,6 +27,7 @@ const customInputs = document.getElementById('customInputs');
 const confirmOverlay = document.getElementById('confirmOverlay');
 const overwriteBtn = document.getElementById('overwriteBtn');
 const duplicateBtn = document.getElementById('duplicateBtn');
+const cancelChangesBtn = document.getElementById('cancelChangesBtn');
 const overlayInputImage = document.getElementById('overlayInputImage');
 const overlayInputImageCamera = document.getElementById('overlayInputImageCamera');
 const overlayUploadTile = document.getElementById('overlayUploadTile');
@@ -617,6 +618,7 @@ function openAddCustomModal(){
 
 if (addCustomBtn) addCustomBtn.onclick = ()=>{ openAddCustomModal(); };
 
+// 选择本地图片（桌面端）
 if (inputImage) inputImage.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -625,6 +627,7 @@ if (inputImage) inputImage.onchange = (e)=>{
     reader.readAsDataURL(file);
 };
 
+// 选择相机图片（移动端）
 if (inputImageCamera) inputImageCamera.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -633,6 +636,7 @@ if (inputImageCamera) inputImageCamera.onchange = (e)=>{
     reader.readAsDataURL(file);
 };
 
+// 覆盖层选择相册（自定义配方无图时）
 if (overlayInputImage) overlayInputImage.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -641,6 +645,7 @@ if (overlayInputImage) overlayInputImage.onchange = (e)=>{
     reader.readAsDataURL(file);
 };
 
+// 覆盖层选择拍照（自定义配方无图时）
 if (overlayInputImageCamera) overlayInputImageCamera.onchange = (e)=>{
     const file = e.target.files && e.target.files[0];
     if (!file) return;
@@ -690,6 +695,7 @@ if (overlayChooseCamera) overlayChooseCamera.onclick = ()=>{
 };
 
 // 打开弹窗
+// 打开配方弹窗：渲染标题、描述、步骤、图片/上传覆盖层
 function openModal(id, source){
     currentCoffeeId=id;
     currentItemSource = source || null;
@@ -755,11 +761,12 @@ function openModal(id, source){
     }
     rImage.alt = coffee.name.replace('\n',' ');
 
+    // 显示弹窗并锁定页面滚动
     modalOverlay.classList.add('active');
     document.body.style.overflow='hidden';
 }
 
-// 关闭弹窗
+// 关闭弹窗：清理状态与覆盖层
 const __closeBtn = document.getElementById('closeBtn');
 if (__closeBtn) __closeBtn.onclick = closeModal;
 const __backBtn = document.getElementById('backBtn');
@@ -803,7 +810,7 @@ function closeModal(){
 
 // 无调节模块
 
-// 保存日志
+// 保存到收藏或自定义：根据当前视图与是否变更决定覆盖或新建
 document.getElementById('saveBtn').onclick = ()=>{
     const currentList = document.getElementById('rSteps');
     const inputs = Array.from(currentList.querySelectorAll('input.step-input'));
@@ -840,6 +847,7 @@ document.getElementById('saveBtn').onclick = ()=>{
             if (confirmOverlay) confirmOverlay.classList.remove('active');
             overwriteBtn.onclick = null;
             duplicateBtn.onclick = null;
+            if (cancelChangesBtn) cancelChangesBtn.onclick = null;
         };
         overwriteBtn.onclick = ()=>{
             if (String(item.id).startsWith('custom-')) {
@@ -886,6 +894,12 @@ document.getElementById('saveBtn').onclick = ()=>{
             renderUserView();
             if (scope === 'favorite') { scrollToSection('section-fav', 'favTab'); } else { scrollToSection('section-custom', 'customTab'); }
         };
+        if (cancelChangesBtn) {
+            cancelChangesBtn.onclick = ()=>{
+                cleanup();
+                closeModal();
+            };
+        }
         return;
     }
 

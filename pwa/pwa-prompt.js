@@ -1,3 +1,4 @@
+// PWA 安装提示：在支持的环境下展示引导
 document.addEventListener("DOMContentLoaded", function () {
   const APP_NAME = "FOCAL BLUR";
   const PROMPT_TEXT = "将FOCAL BLUR添加到桌面";
@@ -25,6 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   let deferredPrompt;
 
+  // Web App 安装事件：延迟展示提示，用户同意后触发安装流程
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
     deferredPrompt = e;
@@ -52,6 +54,7 @@ document.addEventListener("DOMContentLoaded", function () {
     localStorage.setItem("pwa_prompt_dismiss", Date.now());
   });
 
+  // 展示提示弹层：Android 触发安装 / iOS 跳转到引导页
   function showPrompt(onConfirm, isIOSGuide = false) {
     const overlay = document.createElement("div");
     overlay.id = "pwa-overlay";

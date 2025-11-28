@@ -39,9 +39,12 @@
 
 
 
-    <div class="modal-overlay" id="modalOverlay">
+<!-- 配方弹窗：遮罩 + 卡片容器 -->
+<div class="modal-overlay" id="modalOverlay">
         <div class="recipe-card">
+        <!-- 弹窗滚动容器（标题固定、内容可滚动） -->
         <div class="recipe-content-scroll">
+            <!-- 标题区：返回键与标题同一行，位置由 CSS 绝对定位控制 -->
             <div class="recipe-header">
                 <!-- 标题区：返回键与标题同一行显示，返回键位置由 CSS 绝对定位控制，不影响标题与描述的左对齐 -->
                 <h2 class="recipe-title" id="rTitle"><span class="back-btn" id="backBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="rTitleText">Coffee Name</span></h2>
@@ -55,7 +58,8 @@
             <div class="recipe-body">
                 <div class="image-container">
                     <img id="rImage" class="recipe-image" alt="">
-                    <div class="image-add-overlay" id="imageAddOverlay" style="display:none;">
+                <!-- 自定义配方上传覆盖层：无图片时显示 + 上传入口 -->
+                <div class="image-add-overlay" id="imageAddOverlay" style="display:none;">
                         <div class="upload-tile" id="overlayUploadTile"><span class="plus">+</span></div>
                         <div class="upload-choices" id="overlayUploadChoices" style="display:none; margin-top:8px;">
                             <button id="overlayChooseGallery" class="small-btn">从相册</button>
@@ -68,6 +72,7 @@
 
                 
 
+                <!-- 制作步骤区域：支持编辑/恢复默认/添加步骤 -->
                 <div class="steps-block">
                     <div class="steps-bar">
                         <span class="ratio-label">制作步骤</span>
@@ -94,12 +99,14 @@
 </div>
 
 <div id="toast" aria-live="polite"></div>
+<!-- 提示保存方式：覆盖原有版本或新建配方 -->
 <div class="modal-overlay" id="confirmOverlay">
     <div class="confirm-card">
         <div class="confirm-title">检测到步骤变更</div>
         <div class="confirm-actions">
             <button id="overwriteBtn" class="small-btn">覆盖原有版本</button>
             <button id="duplicateBtn" class="small-btn">新建配方</button>
+            <button id="cancelChangesBtn" class="small-btn">取消</button>
         </div>
     </div>
 </div>

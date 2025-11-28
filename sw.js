@@ -1,3 +1,4 @@
+// PWA 缓存版本号（更新资源时需同步修改）
 const CACHE_NAME = 'coffee-daily-v2.4';
 const ASSETS_TO_CACHE = [
   './',
@@ -11,6 +12,7 @@ const ASSETS_TO_CACHE = [
   // 如果你有默认图片，也可以加在这里
 ];
 
+// 安装：预缓存核心资源并立即激活
 self.addEventListener('install', (e) => {
   self.skipWaiting(); // 强制跳过等待，立即激活
   e.waitUntil(
@@ -20,6 +22,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
+// 激活：清理旧版本缓存并接管客户端
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     Promise.all([
@@ -34,6 +37,7 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// 请求拦截：优先网络，图片命中后写入缓存
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.mode === 'navigate') {
