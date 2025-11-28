@@ -203,16 +203,144 @@ function renderHomeView() {
 function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
     const wrapper = document.createElement('div');
     wrapper.className = 'menu-item swipe-item';
-    
+
     const content = document.createElement('div');
     content.className = 'swipe-content';
     if (isPinned) content.style.backgroundColor = '#fffbf0'; 
     content.innerHTML = `<div class=\"menu-icon\">${c.icon}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
+
+    const actions = document.createElement('div');
+    actions.className = 'swipe-actions';
+
+    const pinBtn = document.createElement('button');
+    pinBtn.className = 'swipe-btn btn-pin';
+    pinBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>`;
+    pinBtn.onclick = (e) => { e.stopPropagation(); onPin(); };
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'swipe-btn btn-delete';
+    delBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>`;
+    delBtn.onclick = (e) => { e.stopPropagation(); onDelete(); };
+
+    actions.appendChild(pinBtn);
+    actions.appendChild(delBtn);
     wrapper.appendChild(content);
+    wrapper.appendChild(actions);
 
-    
+    const hoverPin = document.createElement('div');
+    hoverPin.className = 'card-pin';
+    hoverPin.title = isPinned ? '取消置顶' : '置顶';
+    hoverPin.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:${isPinned?'#FFC107':'#9E9E9E'}"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>`;
+    hoverPin.onclick = (e) => { e.stopPropagation(); onPin(); };
 
-    content.addEventListener('click', () => {
+    const hoverDel = document.createElement('div');
+    hoverDel.className = 'card-delete';
+    hoverDel.title = '删除';
+    hoverDel.innerHTML = `<svg viewBox=\"0 0 24 24\" style=\"width:16px;height:16px;fill:#795548\"><path d=\"M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z\" /></svg>`;
+    hoverDel.onclick = (e) => { e.stopPropagation(); onDelete(); };
+
+    wrapper.appendChild(hoverPin);
+    wrapper.appendChild(hoverDel);
+
+    content._swipeState = 0; 
+    let startX = 0;
+    let currentX = 0;
+    const maxSwipe = 140; 
+    let isDragging = false;
+
+    content.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        content.style.transition = 'none';
+        isDragging = false;
+    }, {passive: true});
+
+    content.addEventListener('touchmove', (e) => {
+        const x = e.touches[0].clientX;
+        const delta = x - startX;
+        let targetX = content._swipeState + delta;
+        if (targetX > 0) targetX = 0;
+        if (targetX < -maxSwipe - 20) targetX = -maxSwipe - 20;
+        if (Math.abs(delta) > 5) {
+            isDragging = true;
+            content.style.transform = `translateX(${targetX}px)`;
+            currentX = targetX;
+        }
+    }, {passive: true});
+
+    const endSwipe = () => {
+        content.style.transition = 'transform 0.2s ease-out';
+        let finalState = content._swipeState;
+        if (content._swipeState === 0) {
+            if (currentX < -maxSwipe / 3) {
+                finalState = -maxSwipe;
+                document.querySelectorAll('.swipe-content').forEach(el => {
+                    if(el !== content && el._swipeState !== 0) {
+                        el.style.transform = 'translateX(0)';
+                        el._swipeState = 0;
+                    }
+                });
+            } else {
+                finalState = 0;
+            }
+        } else {
+            if (currentX > -maxSwipe * 2/3) {
+                finalState = 0;
+            } else {
+                finalState = -maxSwipe;
+            }
+        }
+        content.style.transform = `translateX(${finalState}px)`;
+        content._swipeState = finalState;
+        setTimeout(() => { isDragging = false; }, 50);
+    };
+
+    content.addEventListener('touchend', endSwipe);
+
+    let isMouseDown = false;
+    content.addEventListener('mousedown', (e) => {
+        isMouseDown = true;
+        startX = e.clientX;
+        content.style.transition = 'none';
+        isDragging = false;
+    });
+
+    content.addEventListener('mousemove', (e) => {
+        if(!isMouseDown) return;
+        e.preventDefault();
+        const x = e.clientX;
+        const delta = x - startX;
+        let targetX = content._swipeState + delta;
+        if (targetX > 0) targetX = 0;
+        if (targetX < -maxSwipe - 20) targetX = -maxSwipe - 20;
+        if (Math.abs(delta) > 5) {
+            isDragging = true;
+            content.style.transform = `translateX(${targetX}px)`;
+            currentX = targetX;
+        }
+    });
+
+    content.addEventListener('mouseup', (e) => {
+        if(!isMouseDown) return;
+        isMouseDown = false;
+        endSwipe();
+    });
+    content.addEventListener('mouseleave', (e) => {
+        if(isMouseDown) {
+            isMouseDown = false;
+            endSwipe();
+        }
+    });
+
+    content.addEventListener('click', (e) => {
+        if (isDragging) {
+            e.stopPropagation();
+            e.preventDefault();
+            return;
+        }
+        if (content._swipeState !== 0) {
+            content._swipeState = 0;
+            content.style.transform = 'translateX(0)';
+        }
         content.classList.remove('highlight-flash');
         void content.offsetWidth;
         content.classList.add('highlight-flash');
@@ -397,6 +525,10 @@ function scrollToSection(id, tabId){
     const firstItem = sec.querySelector('.menu-item');
     if(firstItem) {
         const target = firstItem.querySelector('.swipe-content') || firstItem;
+        if (typeof target._swipeState !== 'undefined' && target._swipeState !== 0) {
+            target._swipeState = 0;
+            target.style.transform = 'translateX(0)';
+        }
         target.classList.remove('highlight-flash');
         void target.offsetWidth;
         target.classList.add('highlight-flash');

@@ -272,6 +272,10 @@ h1 { margin: 10px 0 5px; font-weight: 300; letter-spacing: 1px; font-size: 2rem;
     animation: flash-highlight 1s ease-out;
 }
 
+.swipe-content.highlight-flash + .swipe-actions {
+    display: none;
+}
+
 .menu-item:focus-visible, .close-btn:focus-visible, .save-btn:focus-visible {
     outline: 2px solid var(--accent-brown);
     outline-offset: 2px;
