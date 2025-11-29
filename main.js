@@ -137,6 +137,8 @@ function finishEditing(){
     isEditingSteps = false;
     if (editBtn) editBtn.textContent = '编辑步骤';
     if (addBtn) addBtn.style.display = 'none';
+    if (editBtn) editBtn.style.display = 'none'; // 结束编辑后收起“编辑步骤”按钮
+    if (resetBtn) resetBtn.style.display = 'none'; // 结束编辑后收起“恢复默认”按钮
 }
 
 function addStep(){
@@ -781,6 +783,8 @@ function openModal(id, source){
     isEditingSteps = false;
     if (editBtn) editBtn.textContent = '编辑步骤';
     if (addBtn) addBtn.style.display = 'none';
+    if (editBtn) editBtn.style.display = 'none'; // 打开配方弹窗时默认隐藏“编辑步骤”按钮
+    if (resetBtn) resetBtn.style.display = 'none'; // 打开配方弹窗时默认隐藏“恢复默认”按钮
     resetBtn.onclick = ()=>{
         const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
         delete map[id];
@@ -856,7 +860,7 @@ function showEditHint(){ // 创建居中编辑提示与透明遮罩
         if (hint && hint.parentNode) hint.parentNode.removeChild(hint);
         if (mask && mask.parentNode) mask.parentNode.removeChild(mask);
     };
-    hint.onclick = ()=>{ removeAll(); if (!isEditingSteps) startEditing(); }; // 点击编辑进入步骤编辑
+    hint.onclick = ()=>{ removeAll(); if (editBtn) editBtn.style.display = 'inline-block'; if (resetBtn) resetBtn.style.display = 'inline-block'; if (!isEditingSteps) startEditing(); }; // 点击编辑进入步骤编辑
     mask.onclick = ()=>{ removeAll(); }; // 点击其他区域关闭提示
 }
 
