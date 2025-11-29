@@ -661,6 +661,17 @@ function openAddCustomModal(){
     if (uploadChoices) uploadChoices.style.display = 'none';
     modalOverlay.classList.add('active');
     document.body.style.overflow='hidden';
+
+    const customBack = document.getElementById('customBackBtn');
+    if (customBack && inputTitle) {
+        customBack.style.display = 'inline-flex';
+        const header = document.querySelector('.recipe-header');
+        const left = inputTitle.offsetLeft - 35;
+        const top = inputTitle.offsetTop + Math.max(0, (inputTitle.offsetHeight - 40) / 2);
+        customBack.style.left = left + 'px';
+        customBack.style.top = top + 'px';
+        customBack.onclick = closeModal;
+    }
 }
 
 if (addCustomBtn) addCustomBtn.onclick = ()=>{ openAddCustomModal(); };
@@ -848,6 +859,8 @@ function closeModal(){
         const list = document.getElementById('rSteps');
         list.innerHTML = '';
         if (uploadChoices) uploadChoices.style.display = 'none';
+        const customBack = document.getElementById('customBackBtn');
+        if (customBack) customBack.style.display = 'none';
     }
     if (confirmOverlay) confirmOverlay.classList.remove('active');
     const imageOverlay2 = document.getElementById('imageAddOverlay');

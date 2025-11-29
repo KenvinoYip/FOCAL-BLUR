@@ -259,6 +259,8 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
    - top 使用 calc 使按钮在首行垂直居中并上移 2px
    - left 为负值，使按钮探出左缘，保持标题与描述左对齐 */
 .back-btn { position:absolute; top:calc((1.03em - 40px)/2 - 2px); left:-35px; display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; text-align:center; font-size:26px; cursor:pointer; color: var(--accent-brown); background: transparent; border-radius:50%; }
+/* 添加特调名称行的返回键：通过 JS 设置与输入框对齐的 top/left */
+.custom-back-btn { position:absolute; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; color: var(--accent-brown); }
 /* 标题样式：line-height 保证两行时第一行位置不变，第二行向下扩展 */
 .recipe-title { margin:0; font-size:1.2rem; padding-right:30px; line-height:1.2; }
 .recipe-desc { font-size:0.9rem; margin-top:8px; color:#666; }
