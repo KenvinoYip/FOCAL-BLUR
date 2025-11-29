@@ -163,7 +163,7 @@ function resetSteps(){
 }
 
 if (editBtn) editBtn.onclick = ()=>{ if(!isEditingSteps) startEditing(); else finishEditing(); };
-if (editDotsBtn) editDotsBtn.onclick = ()=>{ if(!isEditingSteps) startEditing(); else finishEditing(); };
+if (editDotsBtn) editDotsBtn.onclick = ()=>{ showEditHint(); }; // 三点仅弹出编辑提示，不直接进入编辑
 if (addBtn) addBtn.onclick = addStep;
 if (resetBtn) resetBtn.onclick = resetSteps;
 
@@ -829,6 +829,35 @@ function openModal(id, source){
     // 显示弹窗并锁定页面滚动
     modalOverlay.classList.add('active');
     document.body.style.overflow='hidden';
+}
+
+function showEditHint(){ // 创建居中编辑提示与透明遮罩
+    // cleanup existing
+    const prevHint = document.querySelector('.edit-hint');
+    const prevMask = document.querySelector('.edit-hint-mask');
+    if (prevHint && prevHint.parentNode) prevHint.parentNode.removeChild(prevHint); // 清理已有提示避免重复
+    if (prevMask && prevMask.parentNode) prevMask.parentNode.removeChild(prevMask); // 清理已有遮罩避免重复
+
+    const mask = document.createElement('div'); // 透明遮罩，拦截其它点击
+    mask.className = 'edit-hint-mask';
+    document.body.appendChild(mask);
+
+    const hint = document.createElement('div'); // 中心提示容器
+    hint.className = 'edit-hint';
+    hint.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+        </svg>
+        <span>编辑</span>
+    `;
+    document.body.appendChild(hint); // 将提示插入页面
+
+    const removeAll = ()=>{ // 移除提示与遮罩的工具函数
+        if (hint && hint.parentNode) hint.parentNode.removeChild(hint);
+        if (mask && mask.parentNode) mask.parentNode.removeChild(mask);
+    };
+    hint.onclick = ()=>{ removeAll(); if (!isEditingSteps) startEditing(); }; // 点击编辑进入步骤编辑
+    mask.onclick = ()=>{ removeAll(); }; // 点击其他区域关闭提示
 }
 
 function positionEditDots(){

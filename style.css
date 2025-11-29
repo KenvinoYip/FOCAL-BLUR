@@ -271,6 +271,10 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
    - 修改 `right` 可左右微调位置而不影响布局；
    - 垂直位置由 JS `positionEditDots()` 计算并写入 `top`，避免在 CSS 固定，确保与描述首行视觉对齐。 */
 .recipe-body { padding:25px 30px 40px; }
+/* Edit hint overlay */
+.edit-hint { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); z-index: 3000; font-weight: 600; cursor: pointer; } /* 居中黑底白字编辑提示，不影响其他布局 */
+.edit-hint svg { width: 22px; height: 22px; display: block; } /* 编辑提示图标尺寸 */
+.edit-hint-mask { position: fixed; inset: 0; z-index: 2999; background: transparent; } /* 透明全屏遮罩，拦截其他交互，点击关闭提示 */
 
 .image-container { margin-bottom:25px; width:100%; aspect-ratio: 3 / 4; max-height: 60vh; position: relative; }
 /* 自定义上传覆盖层：铺满容器并居中内容（+） */
