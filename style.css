@@ -342,6 +342,8 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     transition: opacity 0.2s ease, transform 0.2s ease;
     z-index: 10;
 }
+.pin-wrap { position: relative; display: inline-block; }
+.pin-slash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 .menu-item:hover .card-pin { opacity: 1; transform: scale(1); }
 .card-pin:active { transform: scale(0.95); }
 

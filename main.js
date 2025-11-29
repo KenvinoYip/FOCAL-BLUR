@@ -245,7 +245,7 @@ function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
 
     const pinBtn = document.createElement('button');
     pinBtn.className = 'swipe-btn btn-pin';
-    pinBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>`;
+    pinBtn.innerHTML = `<span class="pin-wrap"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>${isPinned?'<svg class="pin-slash" viewBox="0 0 24 24" width="20" height="20"><path d="M4 20 L20 4" stroke="#795548" stroke-width="2" stroke-linecap="round"/></svg>':''}</span>`;
     pinBtn.onclick = (e) => { e.stopPropagation(); onPin(); };
 
     const delBtn = document.createElement('button');
@@ -261,7 +261,7 @@ function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
     const hoverPin = document.createElement('div');
     hoverPin.className = 'card-pin';
     hoverPin.title = isPinned ? '取消置顶' : '置顶';
-    hoverPin.innerHTML = `<svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:${isPinned?'#FFC107':'#9E9E9E'}"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>`;
+    hoverPin.innerHTML = `<span class="pin-wrap"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:${isPinned?'#FFC107':'#9E9E9E'}"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>${isPinned?'<svg class="pin-slash" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M4 20 L20 4" stroke="#795548" stroke-width="2" stroke-linecap="round"/></svg>':''}</span>`;
     hoverPin.onclick = (e) => { e.stopPropagation(); onPin(); };
 
     const hoverDel = document.createElement('div');
@@ -405,6 +405,7 @@ function renderUserView() {
     customSection.id = 'section-custom';
     const recipes = getCustomRecipes();
     const customList = (recipes || []).filter(r => !r.scope || r.scope === 'custom');
+    const customIds = customList.map(r=>r.id);
     if (customList.length === 0) {
         customSection.innerHTML = '<div style="padding:20px;color:#999;font-size:0.9rem;">暂无特调记录</div>';
     } else {
@@ -414,8 +415,17 @@ function renderUserView() {
             const item = createSwipeItem(c, isPinned,
                 () => {
                     const idx = pinnedIds.indexOf(id);
-                    if (idx > -1) pinnedIds.splice(idx, 1);
-                    else pinnedIds.unshift(id);
+                    if (idx > -1) {
+                        pinnedIds.splice(idx, 1);
+                    } else {
+                        pinnedIds.unshift(id);
+                        const inSection = pinnedIds.filter(x=> customIds.includes(x));
+                        const limit = 2;
+                        if (inSection.length > limit) {
+                            const toRemove = inSection.slice(limit);
+                            toRemove.forEach(rm=>{ const j = pinnedIds.indexOf(rm); if (j>-1) pinnedIds.splice(j,1); });
+                        }
+                    }
                     localStorage.setItem(PINNED_KEY, JSON.stringify(pinnedIds));
                     renderUserView();
                 },
@@ -449,8 +459,17 @@ function renderUserView() {
                 // onPin
                 () => {
                     const idx = pinnedIds.indexOf(id);
-                    if (idx > -1) pinnedIds.splice(idx, 1);
-                    else pinnedIds.unshift(id);
+                    if (idx > -1) {
+                        pinnedIds.splice(idx, 1);
+                    } else {
+                        pinnedIds.unshift(id);
+                        const inSection = pinnedIds.filter(x=> favIds.includes(x));
+                        const limit = 2;
+                        if (inSection.length > limit) {
+                            const toRemove = inSection.slice(limit);
+                            toRemove.forEach(rm=>{ const j = pinnedIds.indexOf(rm); if (j>-1) pinnedIds.splice(j,1); });
+                        }
+                    }
                     localStorage.setItem(PINNED_KEY, JSON.stringify(pinnedIds));
                     renderUserView();
                 },
