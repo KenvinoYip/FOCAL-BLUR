@@ -14,8 +14,8 @@ const FAVORITES_KEY = 'coffeeFavorites';
 const CUSTOM_STEPS_KEY = 'coffeeCustomSteps';
 const PINNED_KEY = 'coffeePinnedItems';
 const CUSTOM_RECIPES_KEY = 'customRecipes';
-const CUSTOM_META_KEY = 'coffeeCustomMeta';
-const CUSTOM_IMAGE_KEY = 'coffeeCustomImage';
+const CUSTOM_META_KEY = 'coffeeCustomMeta'; // 存储默认饮品的自定义标题/描述（覆盖显示用）
+const CUSTOM_IMAGE_KEY = 'coffeeCustomImage'; // 存储默认饮品的自定义图片（覆盖显示用）
 const addCustomBtn = document.getElementById('addCustomBtn');
 const inputTitle = document.getElementById('inputTitle');
 const inputDesc = document.getElementById('inputDesc');
@@ -251,19 +251,23 @@ function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
     const content = document.createElement('div');
     content.className = 'swipe-content';
     if (isPinned) content.style.backgroundColor = '#fffbf0'; 
-    let displayName = c.name;
-    let displayImage = c.image || '';
+    let displayName = c.name; // 默认显示原始标题
+    let displayImage = c.image || ''; // 默认显示原始图片
     if (currentView === 'user' && !String(c.id).startsWith('custom-')) {
         try {
-            const metaMap = JSON.parse(localStorage.getItem(CUSTOM_META_KEY) || '{}');
-            const imgMap = JSON.parse(localStorage.getItem(CUSTOM_IMAGE_KEY) || '{}');
-            const meta = metaMap[c.id];
-            if (meta && meta.name) displayName = meta.name;
-            if (imgMap[c.id]) displayImage = imgMap[c.id];
+            const stepsMap = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}'); // 仅当存在自定义步骤时才应用标题/图片覆盖
+            const hasCustom = Array.isArray(stepsMap[c.id]);
+            if (hasCustom) {
+                const metaMap = JSON.parse(localStorage.getItem(CUSTOM_META_KEY) || '{}'); // 读取自定义标题/描述
+                const imgMap = JSON.parse(localStorage.getItem(CUSTOM_IMAGE_KEY) || '{}'); // 读取自定义图片
+                const meta = metaMap[c.id];
+                if (meta && meta.name) displayName = meta.name; // 用户视图卡片名称覆盖显示
+                if (imgMap[c.id]) displayImage = imgMap[c.id]; // 用户视图卡片图片覆盖显示
+            }
         } catch(e) {}
     }
-    const iconHtml = displayImage ? `<img class=\"menu-thumb\" src=\"${displayImage}\" alt=\"\">` : `${c.icon}`;
-    content.innerHTML = `<div class=\"menu-icon\">${iconHtml}</div><div class=\"menu-name\">${displayName.replace('\\n','<br>')}</div>`;
+    const iconHtml = displayImage ? `<img class=\"menu-thumb\" src=\"${displayImage}\" alt=\"\">` : `${c.icon}`; // 优先用覆盖图片
+    content.innerHTML = `<div class=\"menu-icon\">${iconHtml}</div><div class=\"menu-name\">${displayName.replace('\\n','<br>')}</div>`; // 名称支持换行符
 
     const actions = document.createElement('div');
     actions.className = 'swipe-actions';
@@ -789,25 +793,30 @@ function openModal(id, source){
     const rTitleTextEl = document.getElementById('rTitleText');
     if (rTitleTextEl) rTitleTextEl.innerText = coffee.name.replace('\n',' ');
     document.getElementById('rDesc').innerText=coffee.desc;
-    try {
-        if (currentView === 'user') {
-            const metaMap = JSON.parse(localStorage.getItem(CUSTOM_META_KEY) || '{}');
-            const m = metaMap[id];
-            if (m) {
-                if (rTitleTextEl && m.name) rTitleTextEl.innerText = m.name;
-                const rDescEl2 = document.getElementById('rDesc');
-                if (rDescEl2 && typeof m.desc === 'string') rDescEl2.innerText = m.desc;
+    try { // 用户视图弹窗的覆盖读取保护起点
+        if (currentView === 'user' && !String(coffee.id).startsWith('custom-')) { // 仅针对默认饮品
+            const stepsMap2 = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}'); // 读取是否存在自定义步骤
+            const hasCustom2 = Array.isArray(stepsMap2[id]); // 有自定义步骤才允许覆盖标题/描述
+            if (hasCustom2) { // 满足条件才应用覆盖
+                const metaMap = JSON.parse(localStorage.getItem(CUSTOM_META_KEY) || '{}'); // 从本地读取自定义标题/描述
+                const m = metaMap[id];
+                if (m) {
+                    if (rTitleTextEl && m.name) rTitleTextEl.innerText = m.name; // 用户视图优先显示自定义标题（仅当存在自定义步骤）
+                    const rDescEl2 = document.getElementById('rDesc');
+                    if (rDescEl2 && typeof m.desc === 'string') rDescEl2.innerText = m.desc; // 用户视图优先显示自定义描述（仅当存在自定义步骤）
+                }
             }
         }
     } catch(e) {}
-    if (customInputs) customInputs.style.display = 'none';
+    if (customInputs) customInputs.style.display = 'none'; // 打开弹窗默认不处于编辑输入态
     const __t = document.getElementById('rTitle');
     const __d = document.getElementById('rDesc');
-    if (__t) __t.style.display = '';
-    if (__d) __d.style.display = '';
+    if (__t) __t.style.display = ''; // 恢复标题显示
+    if (__d) __d.style.display = ''; // 恢复描述显示
     const dotsBtn2 = document.getElementById('editDotsBtn');
-    if (dotsBtn2) dotsBtn2.style.display = 'inline-flex';
-    if (rImage) { rImage.style.cursor = ''; rImage.onclick = null; }
+    if (dotsBtn2) dotsBtn2.style.display = 'inline-flex'; // 默认显示三点按钮
+    if (rImage) { rImage.style.cursor = ''; rImage.onclick = null; } // 退出图片编辑态
+    tempImageData = null; // 清空临时图片，避免未编辑时误判为图片已更改
     positionEditDots();
     __resetSwipe();
 
@@ -864,12 +873,16 @@ function openModal(id, source){
     } else {
         let imgSrc = coffee.image || (`images/${coffee.id}.jpg`);
         try {
-            if (currentView === 'user') {
-                const imgMap = JSON.parse(localStorage.getItem(CUSTOM_IMAGE_KEY) || '{}');
-                if (imgMap[id]) imgSrc = imgMap[id];
+            if (currentView === 'user' && !String(coffee.id).startsWith('custom-')) { // 仅默认饮品可被覆盖
+                const stepsMap3 = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}'); // 检查是否存在自定义步骤
+                const hasCustom3 = Array.isArray(stepsMap3[id]); // 有自定义步骤才允许覆盖图片
+                if (hasCustom3) { // 满足条件才应用覆盖图片
+                    const imgMap = JSON.parse(localStorage.getItem(CUSTOM_IMAGE_KEY) || '{}'); // 用户视图读取自定义图片
+                    if (imgMap[id]) imgSrc = imgMap[id]; // 若存在自定义图片则覆盖显示（仅当存在自定义步骤）
+                }
             }
         } catch(e) {}
-        rImage.src = imgSrc;
+        rImage.src = imgSrc; // 设置实际显示图片
         rImage.style.display = '';
         if (imageOverlay) imageOverlay.style.display = 'none';
     }
@@ -999,8 +1012,8 @@ document.getElementById('saveBtn').onclick = ()=>{
     const steps = inputs.length>0 
         ? inputs.map(i=>i.value.trim()).filter(v=>v.length>0)
         : listItems.map(li=>li.innerText.trim()).filter(v=>v.length>0);
-    const titleEdited = (customInputs && customInputs.style.display !== 'none' && inputTitle) ? inputTitle.value.trim() : '';
-    const descEdited = (customInputs && customInputs.style.display !== 'none' && inputDesc) ? inputDesc.value.trim() : '';
+    const titleEdited = (customInputs && customInputs.style.display !== 'none' && inputTitle) ? inputTitle.value.trim() : ''; // 编辑态下读取自定义标题
+    const descEdited = (customInputs && customInputs.style.display !== 'none' && inputDesc) ? inputDesc.value.trim() : ''; // 编辑态下读取自定义描述
 
     if (isAddCustomMode) {
         const name = (inputTitle && inputTitle.value ? inputTitle.value.trim() : '');
@@ -1022,11 +1035,35 @@ document.getElementById('saveBtn').onclick = ()=>{
     const item = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[]), ...getCustomRecipes()].find(c=>c.id===currentCoffeeId);
     if(!item){ closeModal(); return; }
     const isDifferent = JSON.stringify(steps) !== JSON.stringify(item.steps);
-    const imageChanged = !!tempImageData;
-    const titleChanged = !!titleEdited && (titleEdited !== (item.name || ''));
-    const descChanged = !!descEdited && (descEdited !== (item.desc || ''));
+    const imageChanged = !!tempImageData; // 若有上传/拍摄的数据视为图片已变更
+    const titleChanged = !!titleEdited && (titleEdited !== (item.name || '')); // 标题变更检测
+    const descChanged = !!descEdited && (descEdited !== (item.desc || '')); // 描述变更检测
     
-    if (currentView === 'user' && (isDifferent || isEditingSteps || imageChanged || titleChanged || descChanged)) {
+    // 首页视图：若用户通过“编辑”改动了标题/描述/图片或步骤，保存为自定义配方并加入收藏
+    const didEditText = (customInputs && customInputs.style.display !== 'none'); // 仅在文本编辑框可见时，才认为标题/描述可能被修改
+    if (currentView === 'home' && (isEditingSteps || isDifferent || imageChanged || (didEditText && (titleChanged || descChanged)))) { // 首页编辑后保存为自定义并加入收藏
+        const newId = 'custom-' + Date.now();
+        const newItem = {
+            id: newId,
+            name: titleChanged ? titleEdited : item.name,
+            desc: descChanged ? descEdited : item.desc,
+            image: imageChanged ? tempImageData : (item.image || ''),
+            steps: steps,
+            icon: item.icon || '🧪',
+            scope: 'favorite'
+        };
+        const recipes = getCustomRecipes();
+        recipes.unshift(newItem); // 将新自定义配方置顶
+        localStorage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(recipes));
+        const favs = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
+        if (!favs.includes(newId)) { favs.unshift(newId); localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs)); } // 加入收藏列表
+        showToast('已加入收藏并生成自定义配方');
+        closeModal();
+        renderUserView();
+        scrollToSection('section-fav', 'favTab');
+        return;
+    }
+    if (currentView === 'user' && (isDifferent || isEditingSteps || imageChanged || titleChanged || descChanged)) { // 用户视图走覆盖/新建确认
         if (confirmOverlay) confirmOverlay.classList.add('active');
         const cleanup = ()=>{
             if (confirmOverlay) confirmOverlay.classList.remove('active');
@@ -1049,12 +1086,12 @@ document.getElementById('saveBtn').onclick = ()=>{
                 const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
                 map[item.id] = steps;
                 localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
-                const metaMap = JSON.parse(localStorage.getItem(CUSTOM_META_KEY) || '{}');
-                const imgMap = JSON.parse(localStorage.getItem(CUSTOM_IMAGE_KEY) || '{}');
-                if (titleChanged || descChanged) { metaMap[item.id] = { name: titleChanged ? titleEdited : (metaMap[item.id]?.name || item.name), desc: descChanged ? descEdited : (metaMap[item.id]?.desc || item.desc) }; }
-                if (imageChanged) { imgMap[item.id] = tempImageData; }
-                localStorage.setItem(CUSTOM_META_KEY, JSON.stringify(metaMap));
-                localStorage.setItem(CUSTOM_IMAGE_KEY, JSON.stringify(imgMap));
+                const metaMap = JSON.parse(localStorage.getItem(CUSTOM_META_KEY) || '{}'); // 保存默认饮品的自定义标题/描述
+                const imgMap = JSON.parse(localStorage.getItem(CUSTOM_IMAGE_KEY) || '{}'); // 保存默认饮品的自定义图片
+                if (titleChanged || descChanged) { metaMap[item.id] = { name: titleChanged ? titleEdited : (metaMap[item.id]?.name || item.name), desc: descChanged ? descEdited : (metaMap[item.id]?.desc || item.desc) }; } // 写入或保留自定义标题/描述
+                if (imageChanged) { imgMap[item.id] = tempImageData; } // 写入自定义图片
+                localStorage.setItem(CUSTOM_META_KEY, JSON.stringify(metaMap)); // 持久化自定义标题/描述
+                localStorage.setItem(CUSTOM_IMAGE_KEY, JSON.stringify(imgMap)); // 持久化自定义图片
             }
             cleanup();
             showToast('已覆盖当前配方');
@@ -1141,3 +1178,4 @@ function renderFavorites(){
         menuGrid.appendChild(item);
     });
 }
+    
