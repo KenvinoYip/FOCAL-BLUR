@@ -29,6 +29,9 @@ body {
     align-items: center;
     min-height: 100vh;
     overscroll-behavior-y: contain;
+    /* 移动端防止整页横向滚动与回弹：隐藏水平滚动并限制全局手势为纵向 */
+    overflow-x: hidden;
+    touch-action: pan-y;
 }
 
 /* 顶部标题：固定冻结在页面顶部，宽度跟随页面留左右 20px 边距 */
@@ -376,6 +379,8 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     position: relative;
     z-index: 2;
     transition: transform 0.2s ease-out;
+    /* 列表项区域允许横向手势，用于置顶/删除；与 body 的 pan-y 相互独立 */
+    touch-action: pan-x;
 }
 
 .swipe-actions {

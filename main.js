@@ -274,20 +274,25 @@ function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
     wrapper.appendChild(hoverDel);
 
     content._swipeState = 0; 
-    let startX = 0;
+    let startX = 0; // 触摸起始横坐标（用于横向滑动）
+    let startY = 0; // 触摸起始纵坐标（用于判断是否应拦截默认滚动）
     let currentX = 0;
     const maxSwipe = 140; 
     let isDragging = false;
 
     content.addEventListener('touchstart', (e) => {
         startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
         content.style.transition = 'none';
         isDragging = false;
     }, {passive: true});
 
+    // 当横向滑动幅度大于纵向时，主动阻止默认滚动，避免整页晃动
     content.addEventListener('touchmove', (e) => {
         const x = e.touches[0].clientX;
+        const y = e.touches[0].clientY;
         const delta = x - startX;
+        const deltaY = y - startY;
         let targetX = content._swipeState + delta;
         if (targetX > 0) targetX = 0;
         if (targetX < -maxSwipe - 20) targetX = -maxSwipe - 20;
@@ -295,8 +300,11 @@ function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
             isDragging = true;
             content.style.transform = `translateX(${targetX}px)`;
             currentX = targetX;
+            if (Math.abs(delta) > Math.abs(deltaY)) {
+                e.preventDefault();
+            }
         }
-    }, {passive: true});
+    }, {passive: false});
 
     const endSwipe = () => {
         content.style.transition = 'transform 0.2s ease-out';
