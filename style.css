@@ -263,7 +263,13 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 .custom-back-btn { position:absolute; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; color: var(--accent-brown); }
 /* 标题样式：line-height 保证两行时第一行位置不变，第二行向下扩展 */
 .recipe-title { margin:0; font-size:1.2rem; padding-right:30px; line-height:1.2; }
-.recipe-desc { font-size:0.9rem; margin-top:8px; color:#666; }
+.recipe-desc { font-size:0.9rem; margin-top:8px; color:#666; max-width: calc(100% - 50px); overflow-wrap: anywhere; } /* 限制描述最大宽度以尽早换行；对长串字符允许在任意位置换行，不影响其他布局与样式 */
+.ellipsis-btn { position:absolute; right:16px; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; color: var(--accent-brown); background: transparent; border: none; border-radius:8px; cursor:pointer; }
+.ellipsis-btn:active { transform: scale(0.98); }
+.ellipsis-btn:focus-visible { outline: 2px solid var(--accent-brown); outline-offset: 2px; }
+/* 三点按钮水平位置说明：
+   - 修改 `right` 可左右微调位置而不影响布局；
+   - 垂直位置由 JS `positionEditDots()` 计算并写入 `top`，避免在 CSS 固定，确保与描述首行视觉对齐。 */
 .recipe-body { padding:25px 30px 40px; }
 
 .image-container { margin-bottom:25px; width:100%; aspect-ratio: 3 / 4; max-height: 60vh; position: relative; }

@@ -79,6 +79,7 @@ try {
 
 let isEditingSteps = false;
 const editBtn = document.getElementById('editStepsBtn');
+const editDotsBtn = document.getElementById('editDotsBtn');
 const addBtn = document.getElementById('addStepBtn');
 const resetBtn = document.getElementById('resetStepsBtn');
 let currentView = 'home'; // 'home' or 'user'
@@ -162,6 +163,7 @@ function resetSteps(){
 }
 
 if (editBtn) editBtn.onclick = ()=>{ if(!isEditingSteps) startEditing(); else finishEditing(); };
+if (editDotsBtn) editDotsBtn.onclick = ()=>{ if(!isEditingSteps) startEditing(); else finishEditing(); };
 if (addBtn) addBtn.onclick = addStep;
 if (resetBtn) resetBtn.onclick = resetSteps;
 
@@ -659,6 +661,8 @@ function openAddCustomModal(){
     const overlayChoices2 = document.getElementById('overlayUploadChoices');
     if (overlayChoices2) overlayChoices2.style.display = 'none';
     if (uploadChoices) uploadChoices.style.display = 'none';
+    const dotsBtn1 = document.getElementById('editDotsBtn');
+    if (dotsBtn1) dotsBtn1.style.display = 'none';
     modalOverlay.classList.add('active');
     document.body.style.overflow='hidden';
 
@@ -762,6 +766,9 @@ function openModal(id, source){
     const rTitleTextEl = document.getElementById('rTitleText');
     if (rTitleTextEl) rTitleTextEl.innerText = coffee.name.replace('\n',' ');
     document.getElementById('rDesc').innerText=coffee.desc;
+    const dotsBtn2 = document.getElementById('editDotsBtn');
+    if (dotsBtn2) dotsBtn2.style.display = 'inline-flex';
+    positionEditDots();
     __resetSwipe();
 
     const stepsContainer=document.getElementById('rSteps');
@@ -823,6 +830,42 @@ function openModal(id, source){
     modalOverlay.classList.add('active');
     document.body.style.overflow='hidden';
 }
+
+function positionEditDots(){
+    const btn = document.getElementById('editDotsBtn');
+    const desc = document.getElementById('rDesc');
+    if (!btn || !desc) return;
+    const VISUAL_DOTS_OFFSET = -8;
+    const h = btn.offsetHeight || 36;
+    const header = document.querySelector('.recipe-header');
+    const descRect = desc.getBoundingClientRect();
+    const headerRect = header ? header.getBoundingClientRect() : { top: 0 };
+    const style = getComputedStyle(desc);
+    let lh = parseFloat(style.lineHeight);
+    if (Number.isNaN(lh) || !lh) {
+        const fs = parseFloat(style.fontSize) || 16;
+        lh = fs * 1.2;
+    }
+    const align = Math.max(0, (lh - h) / 2);
+    const top = (descRect.top - headerRect.top) + align + VISUAL_DOTS_OFFSET;
+    btn.style.top = top + 'px';
+}
+
+/*
+三点按钮对齐说明：
+- 目标：与饮品描述首行垂直居中对齐，风格参考返回键的首行对齐。
+- 水平位置：由 CSS 中 `.ellipsis-btn` 的 `right` 控制（`style.css:267`）。
+- 垂直位置：本函数计算并设置 `top`，步骤如下：
+  1) 通过 `getBoundingClientRect()` 取得描述与标题区在视口中的像素位置，
+     使用两者的差值消除粘性头部与滚动的影响。
+  2) 读取 `line-height` 作为首行高度；当为 `normal` 时回退为 `font-size * 1.2`。
+  3) 按钮高度在该行中居中：`(lineHeight - buttonHeight)/2`。
+  4) 施加视觉微调 `VISUAL_DOTS_OFFSET`（`main.js:834`），正值下移，负值上移。
+- 重新计算时机：弹窗打开（`openModal` 调用）与窗口尺寸变化（`resize` 监听）。
+- 仅影响 `#editDotsBtn`，不改变标题、描述及其他功能与视觉。
+*/
+
+window.addEventListener('resize', positionEditDots);
 
 // 关闭弹窗：清理状态与覆盖层
 const __closeBtn = document.getElementById('closeBtn');

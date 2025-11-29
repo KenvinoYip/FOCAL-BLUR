@@ -49,6 +49,17 @@
                 <!-- 标题区：返回键与标题同一行显示，返回键位置由 CSS 绝对定位控制，不影响标题与描述的左对齐 -->
                 <h2 class="recipe-title" id="rTitle"><span class="back-btn" id="backBtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="rTitleText">Coffee Name</span></h2>
                 <p class="recipe-desc" id="rDesc">Description</p>
+                <button class="ellipsis-btn" id="editDotsBtn" aria-label="编辑">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle cx="6" cy="12" r="2"></circle>
+                        <circle cx="12" cy="12" r="2"></circle>
+                        <circle cx="18" cy="12" r="2"></circle>
+                    </svg>
+                </button>
+                <!-- 三点编辑按钮：
+                     - 采用绝对定位固定在标题区域右侧；
+                     - 垂直位置由 JS `positionEditDots()` 计算以对齐描述首行；
+                     - 点击行为与“编辑步骤”一致，仅影响步骤编辑逻辑，不改变其他视觉与功能。 -->
                 <span class="back-btn custom-back-btn" id="customBackBtn" style="display:none;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
                 <div id="customInputs" style="display:none; margin-top:10px;">
                     <input id="inputTitle" class="step-input" placeholder="饮品名称">
