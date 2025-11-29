@@ -14,6 +14,8 @@ const FAVORITES_KEY = 'coffeeFavorites';
 const CUSTOM_STEPS_KEY = 'coffeeCustomSteps';
 const PINNED_KEY = 'coffeePinnedItems';
 const CUSTOM_RECIPES_KEY = 'customRecipes';
+const CUSTOM_META_KEY = 'coffeeCustomMeta';
+const CUSTOM_IMAGE_KEY = 'coffeeCustomImage';
 const addCustomBtn = document.getElementById('addCustomBtn');
 const inputTitle = document.getElementById('inputTitle');
 const inputDesc = document.getElementById('inputDesc');
@@ -139,6 +141,14 @@ function finishEditing(){
     if (addBtn) addBtn.style.display = 'none';
     if (editBtn) editBtn.style.display = 'none'; // 结束编辑后收起“编辑步骤”按钮
     if (resetBtn) resetBtn.style.display = 'none'; // 结束编辑后收起“恢复默认”按钮
+    const t = document.getElementById('rTitle');
+    const d = document.getElementById('rDesc');
+    if (customInputs) customInputs.style.display = 'none';
+    if (t) t.style.display = '';
+    if (d) d.style.display = '';
+    if (rImage) { rImage.style.cursor = ''; rImage.onclick = null; }
+    const dotsBtn = document.getElementById('editDotsBtn');
+    if (dotsBtn) dotsBtn.style.display = 'inline-flex'; // 恢复三点按钮显示
 }
 
 function addStep(){
@@ -241,8 +251,19 @@ function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
     const content = document.createElement('div');
     content.className = 'swipe-content';
     if (isPinned) content.style.backgroundColor = '#fffbf0'; 
-    const iconHtml = c.image ? `<img class=\"menu-thumb\" src=\"${c.image}\" alt=\"\">` : `${c.icon}`;
-    content.innerHTML = `<div class=\"menu-icon\">${iconHtml}</div><div class=\"menu-name\">${c.name.replace('\\n','<br>')}</div>`;
+    let displayName = c.name;
+    let displayImage = c.image || '';
+    if (currentView === 'user' && !String(c.id).startsWith('custom-')) {
+        try {
+            const metaMap = JSON.parse(localStorage.getItem(CUSTOM_META_KEY) || '{}');
+            const imgMap = JSON.parse(localStorage.getItem(CUSTOM_IMAGE_KEY) || '{}');
+            const meta = metaMap[c.id];
+            if (meta && meta.name) displayName = meta.name;
+            if (imgMap[c.id]) displayImage = imgMap[c.id];
+        } catch(e) {}
+    }
+    const iconHtml = displayImage ? `<img class=\"menu-thumb\" src=\"${displayImage}\" alt=\"\">` : `${c.icon}`;
+    content.innerHTML = `<div class=\"menu-icon\">${iconHtml}</div><div class=\"menu-name\">${displayName.replace('\\n','<br>')}</div>`;
 
     const actions = document.createElement('div');
     actions.className = 'swipe-actions';
@@ -768,8 +789,25 @@ function openModal(id, source){
     const rTitleTextEl = document.getElementById('rTitleText');
     if (rTitleTextEl) rTitleTextEl.innerText = coffee.name.replace('\n',' ');
     document.getElementById('rDesc').innerText=coffee.desc;
+    try {
+        if (currentView === 'user') {
+            const metaMap = JSON.parse(localStorage.getItem(CUSTOM_META_KEY) || '{}');
+            const m = metaMap[id];
+            if (m) {
+                if (rTitleTextEl && m.name) rTitleTextEl.innerText = m.name;
+                const rDescEl2 = document.getElementById('rDesc');
+                if (rDescEl2 && typeof m.desc === 'string') rDescEl2.innerText = m.desc;
+            }
+        }
+    } catch(e) {}
+    if (customInputs) customInputs.style.display = 'none';
+    const __t = document.getElementById('rTitle');
+    const __d = document.getElementById('rDesc');
+    if (__t) __t.style.display = '';
+    if (__d) __d.style.display = '';
     const dotsBtn2 = document.getElementById('editDotsBtn');
     if (dotsBtn2) dotsBtn2.style.display = 'inline-flex';
+    if (rImage) { rImage.style.cursor = ''; rImage.onclick = null; }
     positionEditDots();
     __resetSwipe();
 
@@ -824,7 +862,14 @@ function openModal(id, source){
             if (imageOverlay) imageOverlay.style.display = 'flex';
         }
     } else {
-        rImage.src = coffee.image || (`images/${coffee.id}.jpg`);
+        let imgSrc = coffee.image || (`images/${coffee.id}.jpg`);
+        try {
+            if (currentView === 'user') {
+                const imgMap = JSON.parse(localStorage.getItem(CUSTOM_IMAGE_KEY) || '{}');
+                if (imgMap[id]) imgSrc = imgMap[id];
+            }
+        } catch(e) {}
+        rImage.src = imgSrc;
         rImage.style.display = '';
         if (imageOverlay) imageOverlay.style.display = 'none';
     }
@@ -860,7 +905,7 @@ function showEditHint(){ // 创建居中编辑提示与透明遮罩
         if (hint && hint.parentNode) hint.parentNode.removeChild(hint);
         if (mask && mask.parentNode) mask.parentNode.removeChild(mask);
     };
-    hint.onclick = ()=>{ removeAll(); if (editBtn) editBtn.style.display = 'inline-block'; if (resetBtn) resetBtn.style.display = 'inline-block'; if (!isEditingSteps) startEditing(); }; // 点击编辑进入步骤编辑
+    hint.onclick = ()=>{ removeAll(); if (editBtn) editBtn.style.display = 'inline-block'; if (resetBtn) resetBtn.style.display = 'inline-block'; if (!isEditingSteps) startEditing(); const rTitleEl = document.getElementById('rTitle'); const rDescEl = document.getElementById('rDesc'); const rTitleTextEl = document.getElementById('rTitleText'); if (customInputs) customInputs.style.display = 'block'; if (rTitleEl) rTitleEl.style.display = 'none'; if (rDescEl) rDescEl.style.display = 'none'; const dotsBtn = document.getElementById('editDotsBtn'); if (dotsBtn) dotsBtn.style.display = 'none'; if (inputTitle && rTitleTextEl) inputTitle.value = rTitleTextEl.innerText.trim(); if (inputDesc && rDescEl) inputDesc.value = rDescEl.innerText.trim(); if (rImage) { rImage.style.cursor = 'pointer'; rImage.onclick = ()=>{ if (isMobile()) { if (overlayInputImageCamera) overlayInputImageCamera.click(); } else { if (overlayInputImage) overlayInputImage.click(); } }; } }; // 点击编辑进入步骤编辑并开启标题/描述/图片编辑，且隐藏三点按钮
     mask.onclick = ()=>{ removeAll(); }; // 点击其他区域关闭提示
 }
 
@@ -954,6 +999,8 @@ document.getElementById('saveBtn').onclick = ()=>{
     const steps = inputs.length>0 
         ? inputs.map(i=>i.value.trim()).filter(v=>v.length>0)
         : listItems.map(li=>li.innerText.trim()).filter(v=>v.length>0);
+    const titleEdited = (customInputs && customInputs.style.display !== 'none' && inputTitle) ? inputTitle.value.trim() : '';
+    const descEdited = (customInputs && customInputs.style.display !== 'none' && inputDesc) ? inputDesc.value.trim() : '';
 
     if (isAddCustomMode) {
         const name = (inputTitle && inputTitle.value ? inputTitle.value.trim() : '');
@@ -975,9 +1022,11 @@ document.getElementById('saveBtn').onclick = ()=>{
     const item = [...coffeeData, ...(typeof liquorData!=='undefined'?liquorData:[]), ...getCustomRecipes()].find(c=>c.id===currentCoffeeId);
     if(!item){ closeModal(); return; }
     const isDifferent = JSON.stringify(steps) !== JSON.stringify(item.steps);
-    const imageChanged = String(item.id).startsWith('custom-') && !!tempImageData && (tempImageData !== (item.image || ''));
+    const imageChanged = !!tempImageData;
+    const titleChanged = !!titleEdited && (titleEdited !== (item.name || ''));
+    const descChanged = !!descEdited && (descEdited !== (item.desc || ''));
     
-    if (currentView === 'user' && (isDifferent || isEditingSteps || imageChanged)) {
+    if (currentView === 'user' && (isDifferent || isEditingSteps || imageChanged || titleChanged || descChanged)) {
         if (confirmOverlay) confirmOverlay.classList.add('active');
         const cleanup = ()=>{
             if (confirmOverlay) confirmOverlay.classList.remove('active');
@@ -992,12 +1041,20 @@ document.getElementById('saveBtn').onclick = ()=>{
                 if (idx>-1) {
                     recipes[idx].steps = steps;
                     if (imageChanged) { recipes[idx].image = tempImageData; }
+                    if (titleChanged) { recipes[idx].name = titleEdited; }
+                    if (descChanged) { recipes[idx].desc = descEdited; }
                     localStorage.setItem(CUSTOM_RECIPES_KEY, JSON.stringify(recipes));
                 }
             } else {
                 const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
                 map[item.id] = steps;
                 localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
+                const metaMap = JSON.parse(localStorage.getItem(CUSTOM_META_KEY) || '{}');
+                const imgMap = JSON.parse(localStorage.getItem(CUSTOM_IMAGE_KEY) || '{}');
+                if (titleChanged || descChanged) { metaMap[item.id] = { name: titleChanged ? titleEdited : (metaMap[item.id]?.name || item.name), desc: descChanged ? descEdited : (metaMap[item.id]?.desc || item.desc) }; }
+                if (imageChanged) { imgMap[item.id] = tempImageData; }
+                localStorage.setItem(CUSTOM_META_KEY, JSON.stringify(metaMap));
+                localStorage.setItem(CUSTOM_IMAGE_KEY, JSON.stringify(imgMap));
             }
             cleanup();
             showToast('已覆盖当前配方');
@@ -1010,8 +1067,8 @@ document.getElementById('saveBtn').onclick = ()=>{
             const scope = (currentItemSource === 'fav') ? 'favorite' : 'custom';
             const newItem = {
                 id: newId,
-                name: item.name,
-                desc: item.desc,
+                name: titleChanged ? titleEdited : item.name,
+                desc: descChanged ? descEdited : item.desc,
                 image: imageChanged ? tempImageData : (item.image || ''),
                 steps: steps,
                 icon: item.icon || '🧪',
