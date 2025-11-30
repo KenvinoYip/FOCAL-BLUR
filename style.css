@@ -345,8 +345,14 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 .confirm-title { font-weight:600; font-size:1rem; margin-bottom:12px; }
 .confirm-actions { display:flex; gap:10px; justify-content:flex-end; }
 
-#rSteps { line-height: 1.7; }
-#rSteps li { margin: 6px 0; }
+#rSteps { 
+    line-height: 1.7; 
+    padding-left: 0;      /* 【修改】去掉默认的左侧缩进 */
+    list-style-type: none; /* 【建议】编辑模式下去掉默认序号，让对齐更彻底 */
+}
+#rSteps li { 
+    margin: 6px 0; 
+}
 
 #rTipsList { line-height: 1.7; }
 #rTipsList li { margin: 6px 0; }
@@ -640,4 +646,44 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 /* 按钮点击时的反馈 */
 .step-delete-btn:active {
     background-color: rgba(255, 59, 48, 0.1);
+}
+
+/* --- PC端大屏适配：弹窗变身为“手机卡片” --- */
+@media (min-width: 768px) {
+    /* 1. 遮罩层：给四周留出空隙，不再紧贴边缘 */
+    .modal-overlay {
+        padding: 40px; 
+        align-items: center; /* 保证卡片垂直居中 */
+    }
+
+    /* 2. 卡片本体：限制宽高，模拟手机外形 */
+    .recipe-card {
+        width: 100%;
+        max-width: 420px;   /* 限制最大宽度，像一部大号手机 */
+        height: 85vh;       /* 高度固定占屏幕的 85%，保持长屏感 */
+        max-height: 900px;  /* 也不要太高 */
+        border-radius: 24px; /* 恢复圆润的边角 */
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15); /* 添加悬浮阴影，更有质感 */
+        border: 1px solid rgba(0,0,0,0.05); /* 淡淡的边框 */
+        /* 确保内容不会溢出圆角 */
+        overflow: hidden; 
+    }
+
+    /* 3. 标题栏：恢复顶部圆角 */
+    .recipe-header {
+        border-top-left-radius: 24px;
+        border-top-right-radius: 24px;
+    }
+
+    /* 4. 优化 PC 端滚动条样式（让它细一点，不那么突兀） */
+    .recipe-content-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .recipe-content-scroll::-webkit-scrollbar-thumb {
+        background: rgba(0,0,0,0.1);
+        border-radius: 3px;
+    }
+    .recipe-content-scroll::-webkit-scrollbar-track {
+        background: transparent;
+    }
 }

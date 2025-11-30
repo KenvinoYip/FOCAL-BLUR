@@ -1396,8 +1396,7 @@ document.getElementById('saveBtn').onclick = ()=>{
         };
         if (cancelChangesBtn) {
             cancelChangesBtn.onclick = ()=>{
-                cleanup();
-                closeModal();
+                cleanup(); // 只关闭“覆盖/新建”的确认小弹窗，保留底下的编辑页面
             };
         }
         return;
