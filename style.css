@@ -1,4 +1,5 @@
 :root {
+    /* 基础配色变量 */
     --bg-color: #f8f5e6;
     --text-color: #3e2723;
     --card-bg: #ffffff;
@@ -9,6 +10,12 @@
     --milk-color: #f5f5f5;
     --foam-color: #ffffff;
     --water-color: #b3e5fc;
+
+    /* --- 核心控制器：左右标题样式联动 --- */
+    /* 修改下面的数值，左边的列表和右边的标题会同时变化 */
+    --link-font-size:   0.9rem;      /* 字体大小 (例如 1rem, 14px, 16px) */
+    --link-font-weight: 700;       /* 字体粗细 (400是正常，700是加粗) */
+    --link-text-color:  #666666;   /* 字体颜色 (灰色) */
 }
 /* 布局高度变量（由 JS 写入）：
    --header-h 顶部标题高度
@@ -92,7 +99,10 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     background: transparent;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 1rem;
+    /* 绑定变量实现联动 */
+    font-size: var(--link-font-size) !important;
+    font-weight: var(--link-font-weight) !important;
+    font-family: 'Helvetica Neue', Helvetica, sans-serif !important;
     color: #666;
     text-align: center;
     border: 1px solid transparent;
@@ -101,7 +111,8 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 .sidebar-item.active {
     background: transparent;
     color: var(--accent-brown);
-    font-weight: bold;
+    /* 激活状态保持加粗，且颜色覆盖为主题棕色 */
+    font-weight: bold !important; 
     border-color: transparent;
     position: relative;
 }
@@ -124,6 +135,26 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     gap: 0;
     width: 100%;
     margin-bottom: 0;
+}
+
+/* 右侧列表的分类标题样式：绑定相同的变量实现联动 */
+.menu-section-title {
+    /* 样式联动绑定 */
+    font-size: var(--link-font-size) !important;
+    font-weight: var(--link-font-weight) !important;
+    color: var(--link-text-color) !important;
+    font-family: 'Helvetica Neue', Helvetica, sans-serif !important;
+
+    /* 布局样式 */
+    padding: 30px 0 10px 0;
+    border-bottom: none !important; /* 无横线 */
+    margin-bottom: 10px;
+}
+
+/* 细节微调：每一页第一个标题不需要上方大间距 */
+#section-coffee .menu-section-title, 
+#section-custom .menu-section-title {
+    padding-top: 5px;
 }
 
 .menu-item {
@@ -213,25 +244,27 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 .tag.bitter { background-color: #efebe9; color: #5d4037; }
 .delete-log { color: #999; cursor: pointer; font-size:1.2rem; }
 
+/* 弹窗遮罩：修改为去掉内边距，实现全屏 */
 .modal-overlay {
     position: fixed; top:0; left:0; width:100%; height:100%;
     background-color: rgba(62,39,35,0.6); backdrop-filter: blur(6px);
     display:flex; justify-content:center; align-items:center;
     opacity:0; pointer-events:none; transition: opacity 0.25s ease;
-    z-index:1000; padding:0; /* 修改：去掉内边距 */
+    z-index:1000; padding:0; 
 }
 /* 遮罩激活时显示，允许交互 */
 .modal-overlay.active { opacity:1; pointer-events:auto; }
 
+/* 弹窗卡片：全屏样式 */
 .recipe-card {
     background: var(--card-bg); 
     width: 100%; 
-    height: 100%; /* 修改：高度占满 */
-    max-width: 100%; /* 修改：宽度不设限 */
-    max-height: 100%; /* 修改：高度不设限 */
+    height: 100%; /* 高度占满 */
+    max-width: 100%; /* 宽度不设限 */
+    max-height: 100%; /* 高度不设限 */
     display: flex; flex-direction: column; 
-    border-radius: 0; /* 修改：去掉圆角 */
-    border: none; /* 修改：全屏不需要边框 */
+    border-radius: 0; /* 去掉圆角 */
+    border: none; /* 全屏不需要边框 */
     transform: translateY(20px); transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative; overflow: hidden;
 }
@@ -250,7 +283,7 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     padding: 30px 30px 20px; 
     background-color:#fffbf0; 
     border-bottom:1px solid rgba(121,85,72,0.1); 
-    border-radius: 0; /* 修改：去掉顶部圆角 */
+    border-radius: 0; /* 去掉顶部圆角 */
     position: sticky; 
     top: 0; 
     z-index: 2; 
@@ -258,44 +291,43 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 }
 /* 标题容器：相对定位作为返回键绝对定位的参照 */
 .recipe-title { position: relative; } 
-/* 返回键：固定在标题第一行左侧
-   - 通过 line-height 固定第一行高度
-   - top 使用 calc 使按钮在首行垂直居中并上移 2px
-   - left 为负值，使按钮探出左缘，保持标题与描述左对齐 */
+/* 返回键：固定在标题第一行左侧 */
 .back-btn { position:absolute; top:calc((1.03em - 40px)/2 - 2px); left:-35px; display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; text-align:center; font-size:26px; cursor:pointer; color: var(--accent-brown); background: transparent; border-radius:50%; }
 /* 添加特调名称行的返回键：通过 JS 设置与输入框对齐的 top/left */
 .custom-back-btn { position:absolute; width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; color: var(--accent-brown); }
 /* 标题样式：line-height 保证两行时第一行位置不变，第二行向下扩展 */
 .recipe-title { margin:0; font-size:1.2rem; padding-right:30px; line-height:1.2; }
-.recipe-desc { font-size:0.9rem; margin-top:8px; color:#666; max-width: calc(100% - 50px); overflow-wrap: anywhere; } /* 限制描述最大宽度以尽早换行；对长串字符允许在任意位置换行，不影响其他布局与样式 */
+.recipe-desc { font-size:0.9rem; margin-top:8px; color:#666; max-width: calc(100% - 50px); overflow-wrap: anywhere; } /* 限制描述最大宽度以尽早换行 */
 .ellipsis-btn { position:absolute; right:16px; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; color: var(--accent-brown); background: transparent; border: none; border-radius:8px; cursor:pointer; }
 .ellipsis-btn:active { transform: scale(0.98); }
 .ellipsis-btn:focus-visible { outline: 2px solid var(--accent-brown); outline-offset: 2px; }
-/* 三点按钮水平位置说明：
-   - 修改 `right` 可左右微调位置而不影响布局；
-   - 垂直位置由 JS `positionEditDots()` 计算并写入 `top`，避免在 CSS 固定，确保与描述首行视觉对齐。 */
-.recipe-body { padding:25px 0px 20px; } /* 调整底部内边距以适配固定 Footer，避免重复留白 */
-/* Edit hint overlay */
-.edit-hint { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); z-index: 3000; font-weight: 600; cursor: pointer; } /* 居中黑底白字编辑提示，不影响其他布局 */
-.edit-hint svg { width: 22px; height: 22px; display: block; } /* 编辑提示图标尺寸 */
-.edit-hint-mask { position: fixed; inset: 0; z-index: 2999; background: transparent; } /* 透明全屏遮罩，拦截其他交互，点击关闭提示 */
 
+.recipe-body { padding:25px 0px 20px; } /* 调整底部内边距，0px 左右边距适配全屏 */
+
+/* Edit hint overlay */
+.edit-hint { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); z-index: 3000; font-weight: 600; cursor: pointer; }
+.edit-hint svg { width: 22px; height: 22px; display: block; }
+.edit-hint-mask { position: fixed; inset: 0; z-index: 2999; background: transparent; }
+
+/* 图片容器：固定 3:4 比例，不许 JS 修改，超出部分隐藏 */
 .image-container {
     margin: -25px 0 25px; /* 上下留间距，左右顶满 */
     width: 100%;
-    aspect-ratio: 3 / 4 !important; /* 强制锁定 3:4 比例，不许 JS 修改 */
+    aspect-ratio: 3 / 4 !important; /* 强制锁定 3:4 比例 */
     position: relative;
-    overflow: hidden; /* 关键：超出 3:4 框框的部分，直接隐藏（裁剪） */
+    overflow: hidden; /* 超出 3:4 框框的部分隐藏（裁剪） */
 }
 /* 自定义上传覆盖层：铺满容器并居中内容（+） */
 .image-add-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; }
+
+/* 图片样式：cover 模式铺满 */
 .recipe-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* 铺满盒子，多余部分裁掉（不留白，不变形） */
-    object-position: center; /* 居中显示图片中间部分 */
-    border-radius: 0; /* 既然顶满两侧，直角更协调，也可以改回 12px */
-    box-shadow: none; /* 去掉阴影，让它看起来更像一个通栏卡片 */
+    object-fit: cover; /* 铺满盒子，多余部分裁掉 */
+    object-position: center; /* 居中显示 */
+    border-radius: 0; /* 直角 */
+    box-shadow: none; /* 去掉阴影 */
     border: none; /* 去掉边框 */
     display: block;
     background: var(--card-bg);
@@ -318,8 +350,6 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 
 #rTipsList { line-height: 1.7; }
 #rTipsList li { margin: 6px 0; }
-
-
 
 .save-btn {
     width:100%; padding:15px; background-color:var(--accent-brown);
@@ -377,7 +407,12 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     transition: opacity 0.2s ease, transform 0.2s ease;
     z-index: 10;
 }
-.pin-wrap { position: relative; display: inline-block; }
+.pin-wrap { 
+    position: relative; 
+    display: flex; /* 【修改】改为 flex，消除文字间隙 */
+    align-items: center; 
+    justify-content: center; 
+}
 .pin-slash { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 .menu-item:hover .card-pin { opacity: 1; transform: scale(1); }
 .card-pin:active { transform: scale(0.95); }
@@ -442,8 +477,9 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 .swipe-btn svg {
     width: 24px;
     height: 24px;
-    margin-bottom: 2px;
+    margin-bottom: 0; /* 【修改】改为0，防止图标偏上 */
     fill: currentColor;
+    display: block; /* 【新增】确保图标作为块级元素居中 */
 }
 
 .btn-pin {
@@ -460,72 +496,16 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 .image-preview-close { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border: none; border-radius: 10px; background: rgba(255,255,255,0.12); color: #fff; font-size: 24px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .image-preview-close:active { transform: scale(0.96); }
 
-/* --- 新增：右侧列表的分类标题样式（已修改：无横线） --- */
-.menu-section-title {
-    font-size: 1.1rem; /* 这里控制字体大小，两页都会一样大 */
-    font-weight: 700;
-    color: var(--text-color);
-    padding: 30px 0 10px 0;
-    border-bottom: none; /* <--- 【修改点】改成了 none，去掉了下方的横线 */
-    margin-bottom: 10px;
-    font-family: 'Helvetica Neue', Helvetica, sans-serif;
+/* --- 布局优化：首行对齐 + 底部无限空间 --- */
+
+/* 1. 给列表底部增加 80% 屏幕高度的空间，确保最后一个也能滚到顶部 */
+.menu-grid {
+    padding-bottom: 80vh !important; 
 }
 
-/* 让每一页最顶部的那个标题，不需要上方的大空隙，不然会空太大 */
+/* 2. 修正右侧第一个标题的顶部间距，使其与左侧侧边栏(freeze-h + 20px)视觉对齐 */
+/* 左侧 sticky top 是 20px，所以右侧也给 20px */
 #section-coffee .menu-section-title, 
 #section-custom .menu-section-title {
-    padding-top: 5px;
-}
-
-/* --- 右侧列表的分类标题样式 (最终版) --- */
-.menu-section-title {
-    font-size: 1rem;       /* 设置为 1rem，与左侧字体一样大 */
-    font-weight: 700;
-    color: var(--text-color);
-    padding: 30px 0 10px 0;
-    border-bottom: none;   /* 设置为 none，去掉横线 */
-    margin-bottom: 10px;
-    font-family: 'Helvetica Neue', Helvetica, sans-serif;
-}
-
-/* 让每一页第一个标题上方间距小一点 */
-#section-coffee .menu-section-title, 
-#section-custom .menu-section-title {
-    padding-top: 5px;
-}
-
-/* --- 核心控制器：左右标题样式联动 --- */
-:root {
-    /* 🔴【只需要改这里】🔴 */
-    /* 修改下面的数值，左边的列表和右边的标题会同时变化 */
-    --link-font-size:   0.9rem;      /* 字体大小 (例如 1rem, 14px, 16px) */
-    --link-font-weight: 700;       /* 字体粗细 (400是正常，700是加粗) */
-    --link-text-color:  #666666;   /* 字体颜色 (灰色) */
-}
-
-/* 1. 左侧侧边栏：绑定上面的变量 */
-.sidebar-item {
-    font-size: var(--link-font-size) !important;
-    font-weight: var(--link-font-weight) !important; /* 让左侧也跟着变粗 */
-    /* color: var(--link-text-color); */ /* 左侧颜色建议不强制绑定，否则“选中状态”的褐色会被覆盖，建议注释掉这行 */
-    font-family: 'Helvetica Neue', Helvetica, sans-serif !important;
-}
-
-/* 2. 右侧标题栏：绑定相同的变量 */
-.menu-section-title {
-    font-size: var(--link-font-size) !important;   /* 自动跟随左侧大小 */
-    font-weight: var(--link-font-weight) !important; /* 自动跟随左侧粗细 */
-    color: var(--link-text-color) !important;      /* 使用统一颜色 */
-    font-family: 'Helvetica Neue', Helvetica, sans-serif !important;
-
-    /* 布局样式 (保持无横线) */
-    padding: 30px 0 10px 0;
-    border-bottom: none !important; /* 强制去掉横线 */
-    margin-bottom: 10px;
-}
-
-/* 3. 细节微调：每一页第一个标题不需要上方大间距 */
-#section-coffee .menu-section-title, 
-#section-custom .menu-section-title {
-    padding-top: 5px;
+    padding-top: 20px !important; 
 }

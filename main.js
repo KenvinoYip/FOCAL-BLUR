@@ -340,9 +340,7 @@ function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
 
     const pinBtn = document.createElement('button');
     pinBtn.className = 'swipe-btn btn-pin';
-    pinBtn.innerHTML = `<span class="pin-wrap"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>${isPinned?'<svg class="pin-slash" viewBox="0 0 24 24" width="20" height="20"><path d="M4 20 L20 4" stroke="#795548" stroke-width="2" stroke-linecap="round"/></svg>':''}</span>`;
-    pinBtn.onclick = (e) => { e.stopPropagation(); onPin(); };
-
+    pinBtn.innerHTML = `<span class="pin-wrap"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>${isPinned?'<svg class="pin-slash" viewBox="0 0 24 24" width="20" height="20"><path d="M4 20 L20 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>':''}</span>`;    pinBtn.onclick = (e) => { e.stopPropagation(); onPin(); };
     const delBtn = document.createElement('button');
     delBtn.className = 'swipe-btn btn-delete';
     delBtn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>`;
@@ -356,9 +354,8 @@ function createSwipeItem(c, isPinned, onPin, onDelete, onClick) {
     const hoverPin = document.createElement('div');
     hoverPin.className = 'card-pin';
     hoverPin.title = isPinned ? '取消置顶' : '置顶';
-    hoverPin.innerHTML = `<span class="pin-wrap"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:${isPinned?'#FFC107':'#9E9E9E'}"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>${isPinned?'<svg class="pin-slash" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M4 20 L20 4" stroke="#795548" stroke-width="2" stroke-linecap="round"/></svg>':''}</span>`;
-    hoverPin.onclick = (e) => { e.stopPropagation(); onPin(); };
-
+// 【修改】将 stroke="#795548" 改为 stroke="#FFC107"，让斜杠变黄
+    hoverPin.innerHTML = `<span class="pin-wrap"><svg viewBox="0 0 24 24" style="width:16px;height:16px;fill:${isPinned?'#FFC107':'#9E9E9E'}"><path d="M16,12V4H17V2H7V4H8V12L6,14V16H11.2V22H12.8V16H18V14L16,12Z" /></svg>${isPinned?'<svg class="pin-slash" viewBox="0 0 24 24" style="width:16px;height:16px;"><path d="M4 20 L20 4" stroke="#FFC107" stroke-width="2" stroke-linecap="round"/></svg>':''}</span>`;    hoverPin.onclick = (e) => { e.stopPropagation(); onPin(); };
     const hoverDel = document.createElement('div');
     hoverDel.className = 'card-delete';
     hoverDel.title = '删除';
@@ -667,7 +664,7 @@ function scrollToSection(id, tabId){
     const sec = document.getElementById(id);
     if(!sec) return;
     
-    // Update active tab immediately
+    // 切换 Tab 激活状态
     if (currentView === 'home') {
         if (tabId === 'allTab') {
             if (allTab) allTab.classList.add('active');
@@ -686,15 +683,25 @@ function scrollToSection(id, tabId){
         }
     }
 
-    // Disable scroll spy temporarily
+    // 暂停滚动监听，防止自动高亮跳变
     isManualScroll = true;
     setTimeout(() => { isManualScroll = false; }, 800);
 
-    // Calculate position relative to document, adjusting for sidebar top offset (20px)
-    const top = sec.getBoundingClientRect().top + window.scrollY - 20;
-    window.scrollTo({ top: top, behavior: 'smooth' });
+    // 【核心修改】精准计算滚动位置
+    // 1. 获取当前页面顶部的冻结高度 (Header + Nav)
+    const freezeHStr = getComputedStyle(document.documentElement).getPropertyValue('--freeze-h');
+    const freezeH = parseFloat(freezeHStr) || 0;
+    
+    // 2. 计算目标元素的绝对位置
+    const elementTop = sec.getBoundingClientRect().top + window.scrollY;
+    
+    // 3. 计算偏移量：冻结高度 + 20px (侧边栏的 top 偏移量)
+    // 这样滚动后，标题正好位于侧边栏第一个选项的平行位置
+    const offset = freezeH + 20; 
+    
+    window.scrollTo({ top: elementTop - offset, behavior: 'smooth' });
 
-    // Flash highlight the first item in the section
+    // 闪烁高亮该区域第一个卡片
     const firstItem = sec.querySelector('.menu-item');
     if(firstItem) {
         const target = firstItem.querySelector('.swipe-content') || firstItem;
@@ -1043,74 +1050,97 @@ function openModal(id, source){
     if (rImage) { rImage.style.cursor = 'pointer'; rImage.onclick = ()=>{ openImagePreview(); }; }
 } // 结束 openModal
 
-function showEditHint(){ // 三点按钮点击后弹出紧凑的“编辑”下拉卡片
-    const prev = document.getElementById('editDropdown'); // 查找并移除已有的下拉卡片，防止重复
-    if (prev && prev.parentNode) prev.parentNode.removeChild(prev); // 若已存在下拉卡片则移除
-    const header = document.querySelector('.recipe-header'); // 标题区域容器（作为绝对定位参照）
-    const btn = document.getElementById('editDotsBtn'); // 三点按钮元素
-    if (!header || !btn) return; // 容错：缺少关键元素时不进行展示
-    const menu = document.createElement('div'); // 创建下拉菜单容器
-    menu.className = 'dropdown open'; // 复用现有 dropdown 样式并显示
-    menu.id = 'editDropdown'; // 设置唯一 ID，便于后续关闭与移除
-    const headerRect = header.getBoundingClientRect(); // 读取标题区域在视口中的位置，用于计算相对坐标
-    const btnRect = btn.getBoundingClientRect(); // 读取三点按钮位置，确定弹出卡片的垂直位置
-    const top = (btnRect.bottom - headerRect.top) + 0; // 计算菜单顶部相对标题区域的像素值（+0 便于微调）
-    menu.style.position = 'absolute'; // 绝对定位到标题区域内部
-    menu.style.left = 'auto'; // 左侧位置由右侧对齐控制
-    menu.style.right = '12px'; // 与标题右边缘保持一致的内边距
-    menu.style.top = top + 'px'; // 设置垂直位置，贴近三点按钮底部
-    menu.style.minWidth = '60px'; // 紧凑的最小宽度，让视觉更小巧
-    menu.style.padding = '5px'; // 缩小整体内边距以更紧凑
-    menu.style.borderRadius = '10px'; // 圆角与主题一致
-    menu.style.boxShadow = '0 6px 16px rgba(62,39,35,0.15)'; // 使用主题色系的阴影深度
-    menu.style.border = '1px solid rgba(121,85,72,0.15)'; // 主题色系的细边框，增强层次
-    menu.style.opacity = '0'; // 初始透明，用于入场动画
-    menu.style.transform = 'scale(0.98) translateY(-6px)'; // 初始轻微缩放并向上偏移，提升弹出质感
-    menu.style.transition = 'transform 0.16s ease, opacity 0.16s ease'; // 入场/退场的过渡动画
-    const item = document.createElement('div'); // 创建单个菜单项
-    item.className = 'dropdown-item'; // 使用现有菜单项样式
-    item.textContent = '编辑'; // 菜单项文案
-    item.style.padding = '2px 10px'; // 缩小行内间距以达成更小的视觉
-    item.style.fontSize = '0.82rem'; // 调整字号为更小的比例，保持信息清晰
-    item.onclick = ()=>{
-        close();
+function showEditHint(){
+    // 1. 如果已经有弹窗，先清理掉
+    const existing = document.getElementById('editActionSheet');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+
+    // 2. 创建全屏遮罩（带模糊背景）
+    const overlay = document.createElement('div');
+    overlay.id = 'editActionSheet';
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(62,39,35,0.4); backdrop-filter:blur(4px); z-index:9999; display:flex; flex-direction:column; justify-content:flex-end; opacity:0; transition:opacity 0.3s ease;';
+
+    // 3. 创建底部白色面板
+    const sheet = document.createElement('div');
+    sheet.style.cssText = 'background:#ffffff; border-top-left-radius:20px; border-top-right-radius:20px; padding:25px 20px; transform:translateY(100%); transition:transform 0.3s cubic-bezier(0.19, 1, 0.22, 1); display:flex; flex-direction:column; gap:12px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 20px rgba(0,0,0,0.1);';
+
+    // 4. 创建“编辑配方”大按钮
+    const editBtnAction = document.createElement('button');
+    editBtnAction.innerText = '编辑配方';
+    // 样式：浅灰色背景，深褐色文字，圆角大按钮
+    editBtnAction.style.cssText = 'width:100%; padding:16px; background:#f5f5f5; color:#3e2723; border:none; border-radius:12px; font-size:1.05rem; font-weight:600; cursor:pointer; text-align:center;';
+    
+    // 点击“编辑配方”后的逻辑（完全保留了您之前的修改）
+    editBtnAction.onclick = () => {
+        close(); // 先关闭底部弹窗
+        
+        // --- 开始进入编辑模式 ---
         if (editBtn) editBtn.style.display = 'inline-block';
         if (resetBtn) resetBtn.style.display = 'inline-block';
         if (!isEditingSteps) startEditing();
+        
         const rTitleEl = document.getElementById('rTitle');
         const rDescEl = document.getElementById('rDesc');
         const rTitleTextEl = document.getElementById('rTitleText');
+        
         if (customInputs) customInputs.style.display = 'block';
         if (rTitleEl) rTitleEl.style.display = 'none';
         if (rDescEl) rDescEl.style.display = 'none';
+        
+        // 隐藏右上角三个点
         const dots = document.getElementById('editDotsBtn');
         if (dots) dots.style.display = 'none';
+        
+        // 填充输入框
         if (inputTitle && rTitleTextEl) inputTitle.value = rTitleTextEl.innerText.trim();
         if (inputDesc && rDescEl) inputDesc.value = rDescEl.innerText.trim();
+        
+        // 让图片可以点击修改
         if (rImage) { rImage.style.cursor = 'pointer'; rImage.onclick = ()=>{ showImageEditOptions(); }; }
-        const customBack = document.getElementById('customBackBtn'); // 获取编辑态返回键元素
-        if (customBack && inputTitle) { // 在编辑态显示返回键，并以输入框为参照定位
-            customBack.style.display = 'inline-flex'; // 显示返回键并使用与现有样式一致的显示模式
-            const left = inputTitle.offsetLeft - 35; // 计算水平位置，使返回键探出标题左缘但不影响对齐
-            const top = inputTitle.offsetTop + Math.max(0, (inputTitle.offsetHeight - 40) / 2); // 计算垂直居中位置，贴合输入框高度
-           customBack.style.left = left + 'px'; // 应用水平位置
-            customBack.style.top = top + 'px'; // 应用垂直位置
-            customBack.onclick = finishEditing; // 【修改】点击返回键仅退出编辑模式，不关闭弹窗
+        
+        // 显示并配置左上角返回键（保留了您“点击返回退出编辑”的逻辑）
+        const customBack = document.getElementById('customBackBtn');
+        if (customBack && inputTitle) {
+            customBack.style.display = 'inline-flex';
+            const left = inputTitle.offsetLeft - 35;
+            const top = inputTitle.offsetTop + Math.max(0, (inputTitle.offsetHeight - 40) / 2);
+            customBack.style.left = left + 'px';
+            customBack.style.top = top + 'px';
+            customBack.onclick = finishEditing; 
         }
     };
-    menu.appendChild(item);
-    header.appendChild(menu);
-    requestAnimationFrame(()=>{ menu.style.opacity = '1'; menu.style.transform = 'scale(1) translateY(0)'; });
-    function close(){
-        const m = document.getElementById('editDropdown');
-        if (m) { m.style.opacity = '0'; m.style.transform = 'scale(0.98) translateY(-6px)'; }
-        setTimeout(()=>{ if (m && m.parentNode) m.parentNode.removeChild(m); }, 160);
-        document.removeEventListener('click', onDoc, true);
+
+    // 5. 创建“取消”按钮
+    const cancelBtn = document.createElement('button');
+    cancelBtn.innerText = '取消';
+    cancelBtn.style.cssText = 'width:100%; padding:16px; background:#fff; color:#999; border:1px solid #eee; border-radius:12px; font-size:1rem; font-weight:500; cursor:pointer; text-align:center;';
+    cancelBtn.onclick = close;
+
+    // 6. 组装并添加到页面
+    sheet.appendChild(editBtnAction);
+    sheet.appendChild(cancelBtn);
+    overlay.appendChild(sheet);
+    document.body.appendChild(overlay);
+
+    // 7. 播放入场动画
+    requestAnimationFrame(() => {
+        overlay.style.opacity = '1';
+        sheet.style.transform = 'translateY(0)';
+    });
+
+    // 定义关闭函数（动画退场）
+    function close() {
+        overlay.style.opacity = '0';
+        sheet.style.transform = 'translateY(100%)';
+        setTimeout(() => {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 300);
     }
-    function onDoc(e){
-        if (!menu.contains(e.target) && e.target !== btn) close();
-    }
-    setTimeout(()=>{ document.addEventListener('click', onDoc, true); }, 0);
+
+    // 点击空白处也可以关闭
+    overlay.onclick = (e) => {
+        if (e.target === overlay) close();
+    };
 }
 
 function positionEditDots(){
