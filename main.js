@@ -207,7 +207,13 @@ function finishEditing(){
     const t = document.getElementById('rTitle');
     const d = document.getElementById('rDesc');
     
-    // 【新增】退出编辑模式：恢复大图显示
+    // 【核心修改】清空行内样式，让背景色恢复为 CSS 默认的淡黄色
+    const header = document.querySelector('.recipe-header');
+    if (header) {
+        header.style.backgroundColor = ''; 
+        header.style.borderBottomColor = '';
+    }
+
     const imgContainer = document.querySelector('.image-container');
     if (imgContainer) imgContainer.classList.remove('edit-mode');
 
@@ -813,24 +819,28 @@ function openAddCustomModal(){
     currentCoffeeId = null;
     tempImageData = null;
     
-    // 1. 进入编辑模式：图片变缩略图
+    // 【核心修改】直接强制修改头部背景色为纯白，去掉底边框
+    const header = document.querySelector('.recipe-header');
+    if (header) {
+        header.style.backgroundColor = '#ffffff';
+        header.style.borderBottomColor = 'transparent';
+    }
+
+    // 图片变缩略图
     const imgContainer = document.querySelector('.image-container');
     if (imgContainer) imgContainer.classList.add('edit-mode');
 
     if (customInputs) customInputs.style.display = 'block';
     
-    // 隐藏原标题和描述
     const t = document.getElementById('rTitle');
     const d = document.getElementById('rDesc');
     if (t) t.style.display = 'none';
     if (d) d.style.display = 'none';
     
-    // 清空输入框
     if (inputTitle) inputTitle.value = '';
     if (inputDesc) inputDesc.value = '';
     if (inputImage) inputImage.value = '';
     
-    // 初始化步骤列表（带删除按钮）
     const list = document.getElementById('rSteps');
     list.innerHTML = '';
     const li = document.createElement('li');
@@ -849,15 +859,11 @@ function openAddCustomModal(){
     li.appendChild(delBtn);
     list.appendChild(li);
     
-    // -----------------------------------------------------------
-    // 【修改】只显示“添加步骤”，隐藏其他无关按钮
-    // -----------------------------------------------------------
     isEditingSteps = true;
     
-    if (editBtn) editBtn.style.display = 'none';   // 隐藏“完成编辑”
-    if (resetBtn) resetBtn.style.display = 'none'; // 隐藏“恢复默认”
-    if (addBtn) addBtn.style.display = 'inline-block'; // 只保留“添加步骤”
-    // -----------------------------------------------------------
+    if (editBtn) editBtn.style.display = 'none';   
+    if (resetBtn) resetBtn.style.display = 'none'; 
+    if (addBtn) addBtn.style.display = 'inline-block'; 
     
     const tipsSection = document.getElementById('rTipsSection');
     if (tipsSection) tipsSection.style.display = 'none';
@@ -1150,15 +1156,18 @@ function showEditHint(){
     editBtnAction.onclick = () => {
         close();
         
-        // 【新增】进入编辑模式：图片变缩略图
+        // 【核心修改】直接强制修改头部背景色为纯白
+        const header = document.querySelector('.recipe-header');
+        if (header) {
+            header.style.backgroundColor = '#ffffff';
+            header.style.borderBottomColor = 'transparent';
+        }
+
         const imgContainer = document.querySelector('.image-container');
         if (imgContainer) imgContainer.classList.add('edit-mode');
 
-        // -----------------------------------------------------------
-        // 【修改】隐藏“完成编辑”按钮，只保留“恢复默认”和“添加步骤”
-        // -----------------------------------------------------------
-        if (editBtn) editBtn.style.display = 'none'; // 隐藏“完成编辑”
-        if (resetBtn) resetBtn.style.display = 'inline-block'; // 保留“恢复默认”
+        if (editBtn) editBtn.style.display = 'none';
+        if (resetBtn) resetBtn.style.display = 'inline-block';
         
         if (!isEditingSteps) startEditing();
         
@@ -1279,7 +1288,13 @@ function closeModal(){
     document.body.style.overflow='';
     __resetSwipe();
     
-    // 【新增】关闭弹窗时：确保清理编辑模式样式
+    // 【核心修改】清空行内样式，让背景色恢复为 CSS 默认的淡黄色
+    const header = document.querySelector('.recipe-header');
+    if (header) {
+        header.style.backgroundColor = ''; 
+        header.style.borderBottomColor = '';
+    }
+
     const imgContainer = document.querySelector('.image-container');
     if (imgContainer) imgContainer.classList.remove('edit-mode');
 
