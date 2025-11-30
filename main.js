@@ -168,10 +168,26 @@ function startEditing(){
     list.innerHTML = '';
     items.forEach(text=>{
         const li = document.createElement('li');
+        li.className = 'step-item-edit'; // 【新增】应用 Flex 布局样式
+        
         const input = document.createElement('input');
         input.className = 'step-input';
         input.value = text;
+        
+        // 【新增】创建删除按钮 (红色垃圾桶图标)
+        const delBtn = document.createElement('button');
+        delBtn.className = 'step-delete-btn';
+        delBtn.innerHTML = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#FF3B30"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>';
+        
+        // 点击删除该行
+        delBtn.onclick = () => { 
+            if(list.children.length > 0) {
+                li.remove(); 
+            }
+        };
+
         li.appendChild(input);
+        li.appendChild(delBtn);
         list.appendChild(li);
     });
     isEditingSteps = true;
@@ -210,10 +226,20 @@ function finishEditing(){
 function addStep(){
     if(!isEditingSteps) return;
     const li = document.createElement('li');
+    li.className = 'step-item-edit'; // 【新增】应用 Flex 布局样式
+
     const input = document.createElement('input');
     input.className = 'step-input';
     input.placeholder = '新步骤';
+    
+    // 【新增】创建删除按钮
+    const delBtn = document.createElement('button');
+    delBtn.className = 'step-delete-btn';
+    delBtn.innerHTML = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#FF3B30"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>';
+    delBtn.onclick = () => { li.remove(); };
+
     li.appendChild(input);
+    li.appendChild(delBtn);
     document.getElementById('rSteps').appendChild(li);
     input.focus();
 }
@@ -757,7 +783,7 @@ function openAddCustomModal(){
     currentCoffeeId = null;
     tempImageData = null;
     
-    // 【新增】进入编辑模式：图片变缩略图
+    // 进入编辑模式：图片变缩略图
     const imgContainer = document.querySelector('.image-container');
     if (imgContainer) imgContainer.classList.add('edit-mode');
 
@@ -772,14 +798,25 @@ function openAddCustomModal(){
     if (inputDesc) inputDesc.value = '';
     if (inputImage) inputImage.value = '';
     
+    // --- 【修改重点】初始化第一步（带删除按钮） ---
     const list = document.getElementById('rSteps');
     list.innerHTML = '';
     const li = document.createElement('li');
+    li.className = 'step-item-edit'; // 样式类名
+    
     const input = document.createElement('input');
     input.className = 'step-input';
     input.placeholder = '第一步：在这里输入制作步骤...';
+    
+    const delBtn = document.createElement('button');
+    delBtn.className = 'step-delete-btn';
+    delBtn.innerHTML = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#FF3B30"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>';
+    delBtn.onclick = () => { li.remove(); };
+    
     li.appendChild(input);
+    li.appendChild(delBtn);
     list.appendChild(li);
+    // ----------------------------------------
     
     isEditingSteps = true;
     if (editBtn) editBtn.textContent = '完成编辑';

@@ -604,3 +604,40 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     border: 1px dashed rgba(121,85,72,0.3) !important;
     background: #fafafa !important;
 }
+
+/* --- 编辑步骤时的删除样式 --- */
+
+/* 1. 让输入框和删除按钮横向排列 */
+.step-item-edit {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* 输入框和按钮之间的间距 */
+    width: 100%;
+}
+
+/* 2. 让输入框自动占满剩余空间 */
+.step-item-edit .step-input {
+    flex: 1;
+    width: auto; /* 覆盖原来的宽度设置 */
+}
+
+/* 3. 红色删除按钮样式 */
+.step-delete-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%; /* 圆形触摸区 */
+    padding: 0;
+    transition: background 0.2s;
+    flex-shrink: 0; /* 防止被挤压 */
+}
+
+/* 按钮点击时的反馈 */
+.step-delete-btn:active {
+    background-color: rgba(255, 59, 48, 0.1);
+}
