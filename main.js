@@ -36,6 +36,24 @@ const overlayUploadTile = document.getElementById('overlayUploadTile');
 const overlayUploadChoices = document.getElementById('overlayUploadChoices');
 const overlayChooseGallery = document.getElementById('overlayChooseGallery');
 const overlayChooseCamera = document.getElementById('overlayChooseCamera');
+const imageContainer = document.querySelector('.image-container');
+
+function __setContainerAspect(){
+    if (!imageContainer || !rImage) return;
+    const nw = rImage.naturalWidth;
+    const nh = rImage.naturalHeight;
+    if (!nw || !nh) return;
+    const ratio = nw / nh;
+    const LONG_WIDE = 2.6; // 更宽的极端长图阈值，提高动态贴合比例的覆盖面
+    const LONG_TALL = 0.5; // 更高的极端长图阈值，提高动态贴合比例的覆盖面
+    if (ratio > LONG_WIDE || ratio < LONG_TALL) {
+        imageContainer.style.aspectRatio = '3 / 4';
+    } else {
+        imageContainer.style.aspectRatio = `${nw} / ${nh}`;
+    }
+}
+function __resetContainerAspect(){ if (imageContainer) imageContainer.style.aspectRatio = '3 / 4'; }
+if (rImage) rImage.addEventListener('load', __setContainerAspect);
 const imgPreviewOverlay = document.getElementById('imagePreviewOverlay');
 const imgPreviewImg = document.getElementById('imagePreviewImg');
 const imgPreviewClose = document.getElementById('imagePreviewClose');
@@ -954,10 +972,12 @@ function openModal(id, source){
             rImage.src = origImageData;
             rImage.style.display = '';
             if (imageOverlay) imageOverlay.style.display = 'none';
+            __setContainerAspect();
         } else {
             rImage.src = '';
             rImage.style.display = 'none';
             if (imageOverlay) imageOverlay.style.display = 'flex';
+            __resetContainerAspect();
         }
     } else {
         let imgSrc = coffee.image || (`images/${coffee.id}.jpg`);
@@ -974,6 +994,7 @@ function openModal(id, source){
         rImage.src = imgSrc; // 设置实际显示图片
         rImage.style.display = ''; // 确保图片元素显示（清空为默认显示），用于覆盖层隐藏后正常可见
         if (imageOverlay) imageOverlay.style.display = 'none'; // 若存在“添加图片”覆盖层，则在已有图片时隐藏它
+        __setContainerAspect();
     } // 结束默认图片渲染分支（非自定义或已存在图片）
     rImage.alt = coffee.name.replace('\n',' '); // 设置无障碍文本与占位标题，去除换行保证一致的替代文本
     
