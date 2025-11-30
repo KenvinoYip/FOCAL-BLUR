@@ -253,9 +253,16 @@ function renderHomeView() {
     updateSidebar('home');
     menuGrid.innerHTML = '';
     
-    // Create Coffee Section
+    // --- 1. 创建 Coffee 部分 ---
     const coffeeSection = document.createElement('div');
     coffeeSection.id = 'section-coffee';
+    
+    // 【新增】添加 Coffee Daily 标题
+    const coffeeTitle = document.createElement('div');
+    coffeeTitle.className = 'menu-section-title';
+    coffeeTitle.innerText = 'Coffee Daily'; 
+    coffeeSection.appendChild(coffeeTitle);
+
     coffeeData.forEach(c => {
         const item = document.createElement('div');
         item.className = 'menu-item';
@@ -272,9 +279,16 @@ function renderHomeView() {
     });
     menuGrid.appendChild(coffeeSection);
 
-    // Create Liquor Section
+    // --- 2. 创建 Liquor 部分 ---
     const liquorSection = document.createElement('div');
     liquorSection.id = 'section-liquor';
+
+    // 【新增】添加 Liquor Daily 标题
+    const liquorTitle = document.createElement('div');
+    liquorTitle.className = 'menu-section-title';
+    liquorTitle.innerText = 'Liquor Daily';
+    liquorSection.appendChild(liquorTitle);
+
     (typeof liquorData !== 'undefined' ? liquorData : []).forEach(c => {
         const item = document.createElement('div');
         item.className = 'menu-item';
@@ -291,7 +305,7 @@ function renderHomeView() {
     });
     menuGrid.appendChild(liquorSection);
 
-    // Initial Active State
+    // 初始高亮左侧 Coffee 标签
     if (allTab) allTab.classList.add('active');
     if (liquorTab) liquorTab.classList.remove('active');
 }
@@ -489,14 +503,25 @@ function renderUserView() {
         });
     };
 
-    // Create My Customs Section
+    // --- 1. 创建“我的特调”部分 ---
     const customSection = document.createElement('div');
     customSection.id = 'section-custom';
+
+    // 【新增】添加“我的特调”标题
+    const customTitle = document.createElement('div');
+    customTitle.className = 'menu-section-title';
+    customTitle.innerText = '我的特调';
+    customSection.appendChild(customTitle);
+
     const recipes = getCustomRecipes();
     const customList = (recipes || []).filter(r => !r.scope || r.scope === 'custom');
     const customIds = customList.map(r=>r.id);
     if (customList.length === 0) {
-        customSection.innerHTML = '<div style="padding:20px;color:#999;font-size:0.9rem;">暂无特调记录</div>';
+        // 如果没有内容，显示提示文字
+        const emptyMsg = document.createElement('div');
+        emptyMsg.style.cssText = 'padding:10px 0;color:#999;font-size:0.9rem;';
+        emptyMsg.innerText = '暂无特调记录';
+        customSection.appendChild(emptyMsg);
     } else {
         customList.forEach(c => {
             const id = c.id;
@@ -530,14 +555,23 @@ function renderUserView() {
     }
     menuGrid.appendChild(customSection);
 
-    // Create Favorites Section
+    // --- 2. 创建“收藏”部分 ---
     const favSection = document.createElement('div');
     favSection.id = 'section-fav';
     
+    // 【新增】添加“收藏”标题
+    const favTitle = document.createElement('div');
+    favTitle.className = 'menu-section-title';
+    favTitle.innerText = '收藏';
+    favSection.appendChild(favTitle);
+
     let favIds = JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
     
     if (favIds.length === 0) {
-        favSection.innerHTML = '<div style="padding:20px;color:#999;font-size:0.9rem;">暂无收藏</div>';
+        const emptyMsg = document.createElement('div');
+        emptyMsg.style.cssText = 'padding:10px 0;color:#999;font-size:0.9rem;';
+        emptyMsg.innerText = '暂无收藏';
+        favSection.appendChild(emptyMsg);
     } else {
         favIds = sortIds(favIds);
         favIds.forEach(id => {
@@ -576,7 +610,7 @@ function renderUserView() {
     }
     menuGrid.appendChild(favSection);
 
-    // Initial Active State
+    // 初始高亮左侧 Custom 标签
     if (customTab) customTab.classList.add('active');
     if (favTab) favTab.classList.remove('active');
 }

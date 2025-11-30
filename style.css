@@ -92,7 +92,7 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     background: transparent;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: #666;
     text-align: center;
     border: 1px solid transparent;
@@ -459,3 +459,73 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 .image-preview-overlay img { width: 100%; height: auto; max-width: 100%; object-position: center; }
 .image-preview-close { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border: none; border-radius: 10px; background: rgba(255,255,255,0.12); color: #fff; font-size: 24px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .image-preview-close:active { transform: scale(0.96); }
+
+/* --- 新增：右侧列表的分类标题样式（已修改：无横线） --- */
+.menu-section-title {
+    font-size: 1.1rem; /* 这里控制字体大小，两页都会一样大 */
+    font-weight: 700;
+    color: var(--text-color);
+    padding: 30px 0 10px 0;
+    border-bottom: none; /* <--- 【修改点】改成了 none，去掉了下方的横线 */
+    margin-bottom: 10px;
+    font-family: 'Helvetica Neue', Helvetica, sans-serif;
+}
+
+/* 让每一页最顶部的那个标题，不需要上方的大空隙，不然会空太大 */
+#section-coffee .menu-section-title, 
+#section-custom .menu-section-title {
+    padding-top: 5px;
+}
+
+/* --- 右侧列表的分类标题样式 (最终版) --- */
+.menu-section-title {
+    font-size: 1rem;       /* 设置为 1rem，与左侧字体一样大 */
+    font-weight: 700;
+    color: var(--text-color);
+    padding: 30px 0 10px 0;
+    border-bottom: none;   /* 设置为 none，去掉横线 */
+    margin-bottom: 10px;
+    font-family: 'Helvetica Neue', Helvetica, sans-serif;
+}
+
+/* 让每一页第一个标题上方间距小一点 */
+#section-coffee .menu-section-title, 
+#section-custom .menu-section-title {
+    padding-top: 5px;
+}
+
+/* --- 核心控制器：左右标题样式联动 --- */
+:root {
+    /* 🔴【只需要改这里】🔴 */
+    /* 修改下面的数值，左边的列表和右边的标题会同时变化 */
+    --link-font-size:   0.9rem;      /* 字体大小 (例如 1rem, 14px, 16px) */
+    --link-font-weight: 700;       /* 字体粗细 (400是正常，700是加粗) */
+    --link-text-color:  #666666;   /* 字体颜色 (灰色) */
+}
+
+/* 1. 左侧侧边栏：绑定上面的变量 */
+.sidebar-item {
+    font-size: var(--link-font-size) !important;
+    font-weight: var(--link-font-weight) !important; /* 让左侧也跟着变粗 */
+    /* color: var(--link-text-color); */ /* 左侧颜色建议不强制绑定，否则“选中状态”的褐色会被覆盖，建议注释掉这行 */
+    font-family: 'Helvetica Neue', Helvetica, sans-serif !important;
+}
+
+/* 2. 右侧标题栏：绑定相同的变量 */
+.menu-section-title {
+    font-size: var(--link-font-size) !important;   /* 自动跟随左侧大小 */
+    font-weight: var(--link-font-weight) !important; /* 自动跟随左侧粗细 */
+    color: var(--link-text-color) !important;      /* 使用统一颜色 */
+    font-family: 'Helvetica Neue', Helvetica, sans-serif !important;
+
+    /* 布局样式 (保持无横线) */
+    padding: 30px 0 10px 0;
+    border-bottom: none !important; /* 强制去掉横线 */
+    margin-bottom: 10px;
+}
+
+/* 3. 细节微调：每一页第一个标题不需要上方大间距 */
+#section-coffee .menu-section-title, 
+#section-custom .menu-section-title {
+    padding-top: 5px;
+}
