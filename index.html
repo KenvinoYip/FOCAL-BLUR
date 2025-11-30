@@ -102,12 +102,20 @@
                     <ul id="rTipsList"></ul>
                 </div>
 
-                <button class="save-btn" id="saveBtn">
-                    <span>保存配方</span>
-                </button>
+                
             </div>
         </div>
+        <div class="recipe-footer"><!-- 固定在弹窗底部的区域容器，不随内容滚动 -->
+            <button class="save-btn" id="saveBtn"><!-- 保存按钮移至底部区域，保持固定显示 -->
+                <span>保存配方</span>
+            </button>
+        </div>
     </div>
+</div>
+
+<div class="image-preview-overlay" id="imagePreviewOverlay" style="display:none;">
+    <button class="image-preview-close" id="imagePreviewClose" aria-label="关闭">×</button>
+    <img id="imagePreviewImg" alt="">
 </div>
 
 <div id="toast" aria-live="polite"></div>

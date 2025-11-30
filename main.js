@@ -36,6 +36,35 @@ const overlayUploadTile = document.getElementById('overlayUploadTile');
 const overlayUploadChoices = document.getElementById('overlayUploadChoices');
 const overlayChooseGallery = document.getElementById('overlayChooseGallery');
 const overlayChooseCamera = document.getElementById('overlayChooseCamera');
+const imgPreviewOverlay = document.getElementById('imagePreviewOverlay');
+const imgPreviewImg = document.getElementById('imagePreviewImg');
+const imgPreviewClose = document.getElementById('imagePreviewClose');
+let __prevStartX = 0;
+let __prevStartY = 0;
+let __prevDX = 0;
+let __prevDY = 0;
+function openImagePreview(){
+    if (!imgPreviewOverlay || !imgPreviewImg || !rImage) return;
+    imgPreviewImg.src = rImage.src || '';
+    imgPreviewOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closeImagePreview(){
+    if (!imgPreviewOverlay) return;
+    imgPreviewOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+}
+if (imgPreviewClose) imgPreviewClose.onclick = ()=>{ closeImagePreview(); };
+if (imgPreviewOverlay) imgPreviewOverlay.onclick = (e)=>{ if (e.target === imgPreviewOverlay) closeImagePreview(); };
+function __prevReset(){ __prevStartX = 0; __prevStartY = 0; __prevDX = 0; __prevDY = 0; if (imgPreviewImg) { imgPreviewImg.style.transition=''; imgPreviewImg.style.transform=''; } }
+function __prevTouchStart(e){ const t = e.touches && e.touches[0]; if (!t) return; __prevStartX = t.clientX; __prevStartY = t.clientY; if (imgPreviewImg) imgPreviewImg.style.transition = 'none'; }
+function __prevTouchMove(e){ const t = e.touches && e.touches[0]; if (!t) return; const dx = t.clientX - __prevStartX; const dy = t.clientY - __prevStartY; __prevDX = dx; __prevDY = dy; if (Math.abs(dx) > 12 || Math.abs(dy) > 12) { e.preventDefault(); if (imgPreviewImg) { const y = Math.max(0, dy); const x = Math.max(0, dx); imgPreviewImg.style.transform = `translate(${x}px, ${y}px)`; } } }
+function __prevTouchEnd(){ if (__prevDX > 120 || __prevDY > 120) { __prevReset(); closeImagePreview(); } else { __prevReset(); } }
+if (imgPreviewOverlay) {
+  imgPreviewOverlay.addEventListener('touchstart', __prevTouchStart, {passive:true});
+  imgPreviewOverlay.addEventListener('touchmove', __prevTouchMove, {passive:false});
+  imgPreviewOverlay.addEventListener('touchend', __prevTouchEnd, {passive:true});
+}
 // 冻结区尺寸写入 CSS 变量：--header-h、--nav-h、--freeze-h 供布局偏移计算
 const headerEl = document.querySelector('header');
 const sectionTitleEl = document.querySelector('.section-title');
@@ -951,6 +980,7 @@ function openModal(id, source){
     // 显示弹窗并锁定页面滚动
     modalOverlay.classList.add('active'); // 打开配方弹窗遮罩，展示卡片
     document.body.style.overflow='hidden'; // 锁定页面滚动，避免弹窗打开时背景滚动
+    if (rImage) { rImage.style.cursor = 'pointer'; rImage.onclick = ()=>{ openImagePreview(); }; }
 } // 结束 openModal
 
 function showEditHint(){ // 三点按钮点击后弹出紧凑的“编辑”下拉卡片

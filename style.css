@@ -270,7 +270,7 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 /* 三点按钮水平位置说明：
    - 修改 `right` 可左右微调位置而不影响布局；
    - 垂直位置由 JS `positionEditDots()` 计算并写入 `top`，避免在 CSS 固定，确保与描述首行视觉对齐。 */
-.recipe-body { padding:25px 30px 40px; }
+.recipe-body { padding:25px 30px 20px; } /* 调整底部内边距以适配固定 Footer，避免重复留白 */
 /* Edit hint overlay */
 .edit-hint { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: #fff; padding: 12px 16px; border-radius: 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.25); z-index: 3000; font-weight: 600; cursor: pointer; } /* 居中黑底白字编辑提示，不影响其他布局 */
 .edit-hint svg { width: 22px; height: 22px; display: block; } /* 编辑提示图标尺寸 */
@@ -279,7 +279,7 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 .image-container { margin-bottom:25px; width:100%; aspect-ratio: 3 / 4; max-height: 60vh; position: relative; }
 /* 自定义上传覆盖层：铺满容器并居中内容（+） */
 .image-add-overlay { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; }
-.recipe-image { width:100%; height:100%; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.12); border:1px solid rgba(62,39,35,0.15); object-fit:cover; }
+.recipe-image { width:100%; height:100%; border-radius:12px; box-shadow:0 6px 20px rgba(0,0,0,0.12); border:1px solid rgba(62,39,35,0.15); object-fit:contain; object-position:center; background: var(--card-bg); }
 
 .upload-row { margin-top:8px; display:flex; align-items:center; gap:10px; }
 /* 上传入口卡片：显示 + 号 */
@@ -305,7 +305,7 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     width:100%; padding:15px; background-color:var(--accent-brown);
     color:white; border:none; border-radius:10px;
     font-size:1rem; font-weight:bold; cursor:pointer;
-    margin-top:20px; display:flex; align-items:center; justify-content:center; gap:10px;
+    margin-top:12px; display:flex; align-items:center; justify-content:center; gap:10px; /* 减小顶部间距以匹配 Footer 内部的视觉节奏 */
 }
 .save-btn:active { background-color:#5d4037; }
 
@@ -434,3 +434,8 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     background-color: #FF3B30; /* Red */
 }
 
+.recipe-footer { padding:14px 30px; border-top:1px solid rgba(121,85,72,0.1); background: var(--card-bg); } /* 新增卡片底部固定区域样式：分隔线与背景，承载保存按钮 */
+.image-preview-overlay { position: fixed; inset: 0; background: #000; display: none; justify-content: center; align-items: center; z-index: 9999; }
+.image-preview-overlay img { max-width: 100%; max-height: 100%; object-fit: contain; object-position: center; }
+.image-preview-close { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border: none; border-radius: 10px; background: rgba(255,255,255,0.12); color: #fff; font-size: 24px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+.image-preview-close:active { transform: scale(0.96); }
