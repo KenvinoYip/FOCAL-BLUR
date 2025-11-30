@@ -245,15 +245,45 @@ function addStep(){
 }
 
 function resetSteps(){
+    // 1. 获取当前饮品的原始数据
+    const coffee = getCurrentCoffee();
+    if (!coffee) return;
+
+    // 2. 清除本地存储中的“自定义步骤”（恢复底层数据）
     const id = currentCoffeeId;
     const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
-    delete map[id];
-    localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
-    const coffee = getCurrentCoffee();
-    renderStepsList(coffee.steps);
-    isEditingSteps = false;
-    if (editBtn) editBtn.textContent = '编辑步骤';
-    if (addBtn) addBtn.style.display = 'none';
+    if (map[id]) {
+        delete map[id];
+        localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
+    }
+
+    // 3. 清空界面列表
+    const list = document.getElementById('rSteps');
+    list.innerHTML = '';
+
+    // 4. 【核心】重新生成“带删除按钮的输入框”
+    coffee.steps.forEach(text => {
+        const li = document.createElement('li');
+        li.className = 'step-item-edit'; 
+        
+        const input = document.createElement('input');
+        input.className = 'step-input';
+        input.value = text; // 填入默认文本
+        
+        // 创建删除按钮
+        const delBtn = document.createElement('button');
+        delBtn.className = 'step-delete-btn';
+        delBtn.innerHTML = '<svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#FF3B30"><path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z" /></svg>';
+        delBtn.onclick = () => { li.remove(); };
+
+        li.appendChild(input);
+        li.appendChild(delBtn);
+        list.appendChild(li);
+    });
+
+    // 5. 【关键】强制保持编辑状态
+    if (addBtn) addBtn.style.display = 'inline-block';
+    isEditingSteps = true;
 }
 
 if (editBtn) editBtn.onclick = ()=>{ if(!isEditingSteps) startEditing(); else finishEditing(); };
@@ -1046,17 +1076,8 @@ function openModal(id, source){
     if (addBtn) addBtn.style.display = 'none';
     if (editBtn) editBtn.style.display = 'none'; // 打开配方弹窗时默认隐藏“编辑步骤”按钮
     if (resetBtn) resetBtn.style.display = 'none'; // 打开配方弹窗时默认隐藏“恢复默认”按钮
-    resetBtn.onclick = ()=>{
-        const map = JSON.parse(localStorage.getItem(CUSTOM_STEPS_KEY) || '{}');
-        delete map[id];
-        localStorage.setItem(CUSTOM_STEPS_KEY, JSON.stringify(map));
-        const list = document.getElementById('rSteps');
-        list.innerHTML = '';
-        coffee.steps.forEach(s=>list.innerHTML+=`<li>${s}</li>`);
-        isEditingSteps = false;
-        editBtn.innerText = '编辑步骤';
-        addBtn.style.display = 'none';
-    };
+    // 【修改】直接使用全局定义的 resetSteps 函数，不要在这里重写逻辑
+    resetBtn.onclick = resetSteps;
 
     const tipsSection = document.getElementById('rTipsSection');
     const tipsList = document.getElementById('rTipsList');
@@ -1133,8 +1154,12 @@ function showEditHint(){
         const imgContainer = document.querySelector('.image-container');
         if (imgContainer) imgContainer.classList.add('edit-mode');
 
-        if (editBtn) editBtn.style.display = 'inline-block';
-        if (resetBtn) resetBtn.style.display = 'inline-block';
+        // -----------------------------------------------------------
+        // 【修改】隐藏“完成编辑”按钮，只保留“恢复默认”和“添加步骤”
+        // -----------------------------------------------------------
+        if (editBtn) editBtn.style.display = 'none'; // 隐藏“完成编辑”
+        if (resetBtn) resetBtn.style.display = 'inline-block'; // 保留“恢复默认”
+        
         if (!isEditingSteps) startEditing();
         
         const rTitleEl = document.getElementById('rTitle');
@@ -1188,7 +1213,6 @@ function showEditHint(){
             if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
         }, 300);
     }
-    // 点击空白处也能关闭页面
     overlay.onclick = (e) => {
         if (e.target === overlay) close();
     };
