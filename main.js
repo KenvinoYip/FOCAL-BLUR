@@ -937,11 +937,8 @@ if (chooseCamera) chooseCamera.onclick = ()=>{
 };
 
 if (overlayUploadTile) overlayUploadTile.onclick = ()=>{
-    if (isMobile()) {
-        if (overlayUploadChoices) overlayUploadChoices.style.display = 'flex';
-    } else {
-        if (overlayInputImage) overlayInputImage.click();
-    }
+    // 【修改】统一交互：点击 + 号直接呼出底部选择菜单
+    showImageEditOptions();
 };
 
 if (overlayChooseGallery) overlayChooseGallery.onclick = ()=>{
