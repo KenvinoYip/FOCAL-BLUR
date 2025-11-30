@@ -218,16 +218,20 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     background-color: rgba(62,39,35,0.6); backdrop-filter: blur(6px);
     display:flex; justify-content:center; align-items:center;
     opacity:0; pointer-events:none; transition: opacity 0.25s ease;
-    z-index:1000; padding:20px;
+    z-index:1000; padding:0; /* 修改：去掉内边距 */
 }
 /* 遮罩激活时显示，允许交互 */
 .modal-overlay.active { opacity:1; pointer-events:auto; }
 
 .recipe-card {
-    background: var(--card-bg); width:100%; max-width:560px; max-height:90vh;
-    display:flex; flex-direction:column; border-radius:16px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.25);
-    border: 1px solid rgba(121,85,72,0.15);
+    background: var(--card-bg); 
+    width: 100%; 
+    height: 100%; /* 修改：高度占满 */
+    max-width: 100%; /* 修改：宽度不设限 */
+    max-height: 100%; /* 修改：高度不设限 */
+    display: flex; flex-direction: column; 
+    border-radius: 0; /* 修改：去掉圆角 */
+    border: none; /* 修改：全屏不需要边框 */
     transform: translateY(20px); transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative; overflow: hidden;
 }
@@ -246,8 +250,7 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
     padding: 30px 30px 20px; 
     background-color:#fffbf0; 
     border-bottom:1px solid rgba(121,85,72,0.1); 
-    border-top-left-radius:16px; 
-    border-top-right-radius:16px; 
+    border-radius: 0; /* 修改：去掉顶部圆角 */
     position: sticky; 
     top: 0; 
     z-index: 2; 
