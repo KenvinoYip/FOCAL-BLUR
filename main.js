@@ -186,21 +186,25 @@ function finishEditing(){
     isEditingSteps = false;
     if (editBtn) editBtn.textContent = '编辑步骤';
     if (addBtn) addBtn.style.display = 'none';
-    if (editBtn) editBtn.style.display = 'none'; // 结束编辑后收起“编辑步骤”按钮
-    if (resetBtn) resetBtn.style.display = 'none'; // 结束编辑后收起“恢复默认”按钮
+    if (editBtn) editBtn.style.display = 'none';
+    if (resetBtn) resetBtn.style.display = 'none';
     const t = document.getElementById('rTitle');
     const d = document.getElementById('rDesc');
+    
+    // 【新增】退出编辑模式：恢复大图显示
+    const imgContainer = document.querySelector('.image-container');
+    if (imgContainer) imgContainer.classList.remove('edit-mode');
+
     if (customInputs) customInputs.style.display = 'none';
     if (t) t.style.display = '';
     if (d) d.style.display = '';
     
-    // 【修复代码】强制隐藏编辑模式下的返回键，防止出现两个返回键
     const customBack = document.getElementById('customBackBtn');
     if (customBack) customBack.style.display = 'none';
 
     if (rImage) { rImage.style.cursor = ''; rImage.onclick = null; }
     const dotsBtn = document.getElementById('editDotsBtn');
-    if (dotsBtn) dotsBtn.style.display = 'inline-flex'; // 恢复三点按钮显示
+    if (dotsBtn) dotsBtn.style.display = 'inline-flex';
 }
 
 function addStep(){
@@ -752,50 +756,66 @@ function openAddCustomModal(){
     isAddCustomMode = true;
     currentCoffeeId = null;
     tempImageData = null;
+    
+    // 【新增】进入编辑模式：图片变缩略图
+    const imgContainer = document.querySelector('.image-container');
+    if (imgContainer) imgContainer.classList.add('edit-mode');
+
     if (customInputs) customInputs.style.display = 'block';
+    
     const t = document.getElementById('rTitle');
     const d = document.getElementById('rDesc');
     if (t) t.style.display = 'none';
     if (d) d.style.display = 'none';
+    
     if (inputTitle) inputTitle.value = '';
     if (inputDesc) inputDesc.value = '';
     if (inputImage) inputImage.value = '';
+    
     const list = document.getElementById('rSteps');
     list.innerHTML = '';
     const li = document.createElement('li');
     const input = document.createElement('input');
     input.className = 'step-input';
-    input.placeholder = '步骤描述';
+    input.placeholder = '第一步：在这里输入制作步骤...';
     li.appendChild(input);
     list.appendChild(li);
+    
     isEditingSteps = true;
     if (editBtn) editBtn.textContent = '完成编辑';
     if (addBtn) addBtn.style.display = 'inline-block';
+    
     const tipsSection = document.getElementById('rTipsSection');
     if (tipsSection) tipsSection.style.display = 'none';
+    
     rImage.src = '';
     rImage.alt = '';
     rImage.style.display = 'none';
+    
     const overlayAdd = document.getElementById('imageAddOverlay');
     if (overlayAdd) overlayAdd.style.display = 'flex';
+    
     const overlayChoices2 = document.getElementById('overlayUploadChoices');
     if (overlayChoices2) overlayChoices2.style.display = 'none';
     if (uploadChoices) uploadChoices.style.display = 'none';
+    
     const dotsBtn1 = document.getElementById('editDotsBtn');
     if (dotsBtn1) dotsBtn1.style.display = 'none';
+    
     modalOverlay.classList.add('active');
     document.body.style.overflow='hidden';
 
-    const customBack = document.getElementById('customBackBtn');
-    if (customBack && inputTitle) {
-        customBack.style.display = 'inline-flex';
-        const header = document.querySelector('.recipe-header');
-        const left = inputTitle.offsetLeft - 35;
-        const top = inputTitle.offsetTop + Math.max(0, (inputTitle.offsetHeight - 40) / 2);
-        customBack.style.left = left + 'px';
-        customBack.style.top = top + 'px';
-        customBack.onclick = closeModal;
-    }
+    requestAnimationFrame(() => {
+        const customBack = document.getElementById('customBackBtn');
+        if (customBack && inputTitle) {
+            customBack.style.display = 'inline-flex';
+            const left = inputTitle.offsetLeft - 35; 
+            const top = inputTitle.offsetTop + (inputTitle.offsetHeight - 40) / 2;
+            customBack.style.left = left + 'px';
+            customBack.style.top = top + 'px';
+            customBack.onclick = closeModal; 
+        }
+    });
 }
 
 if (addCustomBtn) addCustomBtn.onclick = ()=>{ openAddCustomModal(); };
@@ -1051,30 +1071,27 @@ function openModal(id, source){
 } // 结束 openModal
 
 function showEditHint(){
-    // 1. 如果已经有弹窗，先清理掉
     const existing = document.getElementById('editActionSheet');
     if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
 
-    // 2. 创建全屏遮罩（带模糊背景）
     const overlay = document.createElement('div');
     overlay.id = 'editActionSheet';
     overlay.style.cssText = 'position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(62,39,35,0.4); backdrop-filter:blur(4px); z-index:9999; display:flex; flex-direction:column; justify-content:flex-end; opacity:0; transition:opacity 0.3s ease;';
 
-    // 3. 创建底部白色面板
     const sheet = document.createElement('div');
     sheet.style.cssText = 'background:#ffffff; border-top-left-radius:20px; border-top-right-radius:20px; padding:25px 20px; transform:translateY(100%); transition:transform 0.3s cubic-bezier(0.19, 1, 0.22, 1); display:flex; flex-direction:column; gap:12px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 20px rgba(0,0,0,0.1);';
 
-    // 4. 创建“编辑配方”大按钮
     const editBtnAction = document.createElement('button');
     editBtnAction.innerText = '编辑配方';
-    // 样式：浅灰色背景，深褐色文字，圆角大按钮
     editBtnAction.style.cssText = 'width:100%; padding:16px; background:#f5f5f5; color:#3e2723; border:none; border-radius:12px; font-size:1.05rem; font-weight:600; cursor:pointer; text-align:center;';
     
-    // 点击“编辑配方”后的逻辑（完全保留了您之前的修改）
     editBtnAction.onclick = () => {
-        close(); // 先关闭底部弹窗
+        close();
         
-        // --- 开始进入编辑模式 ---
+        // 【新增】进入编辑模式：图片变缩略图
+        const imgContainer = document.querySelector('.image-container');
+        if (imgContainer) imgContainer.classList.add('edit-mode');
+
         if (editBtn) editBtn.style.display = 'inline-block';
         if (resetBtn) resetBtn.style.display = 'inline-block';
         if (!isEditingSteps) startEditing();
@@ -1087,48 +1104,42 @@ function showEditHint(){
         if (rTitleEl) rTitleEl.style.display = 'none';
         if (rDescEl) rDescEl.style.display = 'none';
         
-        // 隐藏右上角三个点
         const dots = document.getElementById('editDotsBtn');
         if (dots) dots.style.display = 'none';
         
-        // 填充输入框
         if (inputTitle && rTitleTextEl) inputTitle.value = rTitleTextEl.innerText.trim();
         if (inputDesc && rDescEl) inputDesc.value = rDescEl.innerText.trim();
         
-        // 让图片可以点击修改
         if (rImage) { rImage.style.cursor = 'pointer'; rImage.onclick = ()=>{ showImageEditOptions(); }; }
         
-        // 显示并配置左上角返回键（保留了您“点击返回退出编辑”的逻辑）
-        const customBack = document.getElementById('customBackBtn');
-        if (customBack && inputTitle) {
-            customBack.style.display = 'inline-flex';
-            const left = inputTitle.offsetLeft - 35;
-            const top = inputTitle.offsetTop + Math.max(0, (inputTitle.offsetHeight - 40) / 2);
-            customBack.style.left = left + 'px';
-            customBack.style.top = top + 'px';
-            customBack.onclick = finishEditing; 
-        }
+        requestAnimationFrame(() => {
+            const customBack = document.getElementById('customBackBtn');
+            if (customBack && inputTitle) {
+                customBack.style.display = 'inline-flex';
+                const left = inputTitle.offsetLeft - 35;
+                const top = inputTitle.offsetTop + (inputTitle.offsetHeight - 40) / 2;
+                customBack.style.left = left + 'px';
+                customBack.style.top = top + 'px';
+                customBack.onclick = finishEditing; 
+            }
+        });
     };
 
-    // 5. 创建“取消”按钮
     const cancelBtn = document.createElement('button');
     cancelBtn.innerText = '取消';
     cancelBtn.style.cssText = 'width:100%; padding:16px; background:#fff; color:#999; border:1px solid #eee; border-radius:12px; font-size:1rem; font-weight:500; cursor:pointer; text-align:center;';
     cancelBtn.onclick = close;
 
-    // 6. 组装并添加到页面
     sheet.appendChild(editBtnAction);
     sheet.appendChild(cancelBtn);
     overlay.appendChild(sheet);
     document.body.appendChild(overlay);
 
-    // 7. 播放入场动画
     requestAnimationFrame(() => {
         overlay.style.opacity = '1';
         sheet.style.transform = 'translateY(0)';
     });
 
-    // 定义关闭函数（动画退场）
     function close() {
         overlay.style.opacity = '0';
         sheet.style.transform = 'translateY(100%)';
@@ -1136,8 +1147,7 @@ function showEditHint(){
             if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
         }, 300);
     }
-
-    // 点击空白处也可以关闭
+    // 点击空白处也能关闭页面
     overlay.onclick = (e) => {
         if (e.target === overlay) close();
     };
@@ -1203,6 +1213,11 @@ function closeModal(){
     modalOverlay.classList.remove('active');
     document.body.style.overflow='';
     __resetSwipe();
+    
+    // 【新增】关闭弹窗时：确保清理编辑模式样式
+    const imgContainer = document.querySelector('.image-container');
+    if (imgContainer) imgContainer.classList.remove('edit-mode');
+
     if (isAddCustomMode) {
         isAddCustomMode = false;
         tempImageData = null;
@@ -1215,8 +1230,8 @@ function closeModal(){
         list.innerHTML = '';
         if (uploadChoices) uploadChoices.style.display = 'none';
     }
-    const __customBack1 = document.getElementById('customBackBtn'); // 统一找到编辑态返回键
-    if (__customBack1) __customBack1.style.display = 'none'; // 关闭弹窗后始终隐藏，防止下次打开出现两个返回键
+    const __customBack1 = document.getElementById('customBackBtn');
+    if (__customBack1) __customBack1.style.display = 'none';
     if (confirmOverlay) confirmOverlay.classList.remove('active');
     const imageOverlay2 = document.getElementById('imageAddOverlay');
     if (imageOverlay2) imageOverlay2.style.display = 'none';

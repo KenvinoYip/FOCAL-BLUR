@@ -509,3 +509,98 @@ h1 { margin: 6px 0 6px; font-weight: 300; letter-spacing: 1px; font-size: 2rem; 
 #section-custom .menu-section-title {
     padding-top: 20px !important; 
 }
+
+/* --- 编辑页面简化优化 (极简风格) --- */
+
+/* 1. 调整输入区域容器 */
+#customInputs {
+    margin-top: -5px !important; /* 稍微上移，利用空间 */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* 2. 标题输入框：变大、加粗、去边框 */
+#inputTitle {
+    font-size: 1.5rem;      /* 大字体，像真正的标题 */
+    font-weight: 700;
+    color: var(--text-color);
+    border: none;           /* 去掉四周黑边框 */
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    border-bottom: 2px solid transparent; /* 默认无底线 */
+    transition: border-color 0.2s;
+}
+/* 鼠标点进去时，显示一条优雅的下划线 */
+#inputTitle:focus {
+    outline: none;
+    border-bottom: 2px solid var(--accent-brown);
+}
+#inputTitle::placeholder {
+    color: #ccc;
+    font-weight: 400;
+}
+
+/* 3. 描述输入框：去边框、像普通文本 */
+#inputDesc {
+    font-size: 1rem;
+    color: #666;
+    border: none;           /* 去掉四周黑边框 */
+    background: transparent;
+    padding: 0;
+    resize: none;           /* 不显示右下角拖拽标 */
+    line-height: 1.5;
+    font-family: inherit;
+}
+#inputDesc:focus {
+    outline: none;
+}
+#inputDesc::placeholder {
+    color: #ddd;
+}
+
+/* 4. 优化上传图片的 "+" 号方块，让它看起来更轻盈 */
+.upload-tile {
+    border: 1px dashed rgba(121,85,72,0.2); /* 虚线边框更显轻盈 */
+    background: #fafafa;
+}
+
+/* --- 编辑模式下的图片缩略图样式 --- */
+.image-container.edit-mode {
+    /* 取消原来的全屏大图样式 */
+    width: auto !important;
+    height: auto !important;
+    aspect-ratio: unset !important;
+    margin: 10px 0 20px 30px !important; /* 左对齐，留出30px边距与标题对齐 */
+    display: flex;
+    justify-content: flex-start;
+    overflow: visible !important; /* 允许阴影显示 */
+}
+
+/* 图片本体变为圆角小方块 */
+.image-container.edit-mode .recipe-image {
+    width: 80px !important;
+    height: 80px !important;
+    border-radius: 12px !important;
+    object-fit: cover;
+    display: block;
+    cursor: pointer;
+    border: 1px solid rgba(0,0,0,0.05); /* 淡淡的描边 */
+}
+
+/* 上传按钮也变为同样大小的小方块 */
+.image-container.edit-mode .image-add-overlay {
+    position: relative !important; /* 不再绝对定位覆盖 */
+    width: 80px !important;
+    height: 80px !important;
+    display: flex !important;
+}
+
+.image-container.edit-mode .upload-tile {
+    width: 100% !important;
+    height: 100% !important;
+    box-shadow: none !important;
+    border: 1px dashed rgba(121,85,72,0.3) !important;
+    background: #fafafa !important;
+}
