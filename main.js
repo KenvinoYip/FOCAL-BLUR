@@ -783,26 +783,28 @@ function openAddCustomModal(){
     currentCoffeeId = null;
     tempImageData = null;
     
-    // 进入编辑模式：图片变缩略图
+    // 1. 进入编辑模式：图片变缩略图
     const imgContainer = document.querySelector('.image-container');
     if (imgContainer) imgContainer.classList.add('edit-mode');
 
     if (customInputs) customInputs.style.display = 'block';
     
+    // 隐藏原标题和描述
     const t = document.getElementById('rTitle');
     const d = document.getElementById('rDesc');
     if (t) t.style.display = 'none';
     if (d) d.style.display = 'none';
     
+    // 清空输入框
     if (inputTitle) inputTitle.value = '';
     if (inputDesc) inputDesc.value = '';
     if (inputImage) inputImage.value = '';
     
-    // --- 【修改重点】初始化第一步（带删除按钮） ---
+    // 初始化步骤列表（带删除按钮）
     const list = document.getElementById('rSteps');
     list.innerHTML = '';
     const li = document.createElement('li');
-    li.className = 'step-item-edit'; // 样式类名
+    li.className = 'step-item-edit'; 
     
     const input = document.createElement('input');
     input.className = 'step-input';
@@ -816,11 +818,16 @@ function openAddCustomModal(){
     li.appendChild(input);
     li.appendChild(delBtn);
     list.appendChild(li);
-    // ----------------------------------------
     
+    // -----------------------------------------------------------
+    // 【修改】只显示“添加步骤”，隐藏其他无关按钮
+    // -----------------------------------------------------------
     isEditingSteps = true;
-    if (editBtn) editBtn.textContent = '完成编辑';
-    if (addBtn) addBtn.style.display = 'inline-block';
+    
+    if (editBtn) editBtn.style.display = 'none';   // 隐藏“完成编辑”
+    if (resetBtn) resetBtn.style.display = 'none'; // 隐藏“恢复默认”
+    if (addBtn) addBtn.style.display = 'inline-block'; // 只保留“添加步骤”
+    // -----------------------------------------------------------
     
     const tipsSection = document.getElementById('rTipsSection');
     if (tipsSection) tipsSection.style.display = 'none';
