@@ -193,6 +193,11 @@ function finishEditing(){
     if (customInputs) customInputs.style.display = 'none';
     if (t) t.style.display = '';
     if (d) d.style.display = '';
+    
+    // 【修复代码】强制隐藏编辑模式下的返回键，防止出现两个返回键
+    const customBack = document.getElementById('customBackBtn');
+    if (customBack) customBack.style.display = 'none';
+
     if (rImage) { rImage.style.cursor = ''; rImage.onclick = null; }
     const dotsBtn = document.getElementById('editDotsBtn');
     if (dotsBtn) dotsBtn.style.display = 'inline-flex'; // 恢复三点按钮显示
@@ -1054,9 +1059,9 @@ function showEditHint(){ // 三点按钮点击后弹出紧凑的“编辑”下�
             customBack.style.display = 'inline-flex'; // 显示返回键并使用与现有样式一致的显示模式
             const left = inputTitle.offsetLeft - 35; // 计算水平位置，使返回键探出标题左缘但不影响对齐
             const top = inputTitle.offsetTop + Math.max(0, (inputTitle.offsetHeight - 40) / 2); // 计算垂直居中位置，贴合输入框高度
-            customBack.style.left = left + 'px'; // 应用水平位置
+           customBack.style.left = left + 'px'; // 应用水平位置
             customBack.style.top = top + 'px'; // 应用垂直位置
-            customBack.onclick = closeModal; // 点击返回键关闭弹窗，行为与现有返回键一致
+            customBack.onclick = finishEditing; // 【修改】点击返回键仅退出编辑模式，不关闭弹窗
         }
     };
     menu.appendChild(item);
