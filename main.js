@@ -747,6 +747,64 @@ function isMobile(){
     return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 }
 
+function showImageEditOptions(){
+    const existing = document.getElementById('imageEditSheet');
+    if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+    const overlay = document.createElement('div');
+    overlay.id = 'imageEditSheet';
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.background = 'rgba(62,39,35,0.4)';
+    overlay.style.backdropFilter = 'blur(4px)';
+    overlay.style.display = 'flex';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'flex-end';
+    overlay.style.zIndex = '9999';
+    overlay.style.padding = '0 10px 30px';
+    const box = document.createElement('div');
+    box.style.background = '#ffffff';
+    box.style.color = '#3e2723';
+    box.style.width = '100%';
+    box.style.maxWidth = '400px';
+    box.style.borderRadius = '16px';
+    box.style.padding = '16px';
+    box.style.boxShadow = '0 10px 30px rgba(62,39,35,0.2)';
+    box.style.border = '1px solid rgba(121,85,72,0.1)';
+    box.style.display = 'flex';
+    box.style.flexDirection = 'column';
+    box.style.gap = '12px';
+    box.style.transform = 'translateY(100%)';
+    box.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    const btnWrap = document.createElement('div');
+    btnWrap.style.display = 'flex';
+    btnWrap.style.flexDirection = 'column';
+    btnWrap.style.gap = '12px';
+    const galleryBtn = document.createElement('button');
+    galleryBtn.className = 'small-btn';
+    galleryBtn.textContent = '从相册';
+    galleryBtn.style.width = '100%';
+    const cameraBtn = document.createElement('button');
+    cameraBtn.className = 'small-btn';
+    cameraBtn.textContent = '拍照';
+    cameraBtn.style.width = '100%';
+    btnWrap.appendChild(galleryBtn);
+    btnWrap.appendChild(cameraBtn);
+    box.appendChild(btnWrap);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    requestAnimationFrame(()=>{ box.style.transform = 'translateY(0)'; });
+    function close(){
+        box.style.transform = 'translateY(100%)';
+        setTimeout(()=>{ if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 250);
+    }
+    overlay.onclick = (e)=>{ if (e.target === overlay) close(); };
+    galleryBtn.onclick = ()=>{ close(); if (overlayInputImage) overlayInputImage.click(); };
+    cameraBtn.onclick = ()=>{ close(); if (overlayInputImageCamera) overlayInputImageCamera.click(); };
+}
+
 if (uploadTile) uploadTile.onclick = ()=>{
     if (isMobile()) {
         if (uploadChoices) uploadChoices.style.display = 'flex';
@@ -813,6 +871,8 @@ function openModal(id, source){
     const __d = document.getElementById('rDesc');
     if (__t) __t.style.display = ''; // 恢复标题显示
     if (__d) __d.style.display = ''; // 恢复描述显示
+    const __customBack0 = document.getElementById('customBackBtn'); // 打开弹窗初始隐藏编辑态返回键，避免与标题返回键重复
+    if (__customBack0) __customBack0.style.display = 'none'; // 仅保留标题中的返回键，未进入编辑态不显示第二个返回键
     const dotsBtn2 = document.getElementById('editDotsBtn');
     if (dotsBtn2) dotsBtn2.style.display = 'inline-flex'; // 默认显示三点按钮
     if (rImage) { rImage.style.cursor = ''; rImage.onclick = null; } // 退出图片编辑态
@@ -883,43 +943,84 @@ function openModal(id, source){
             }
         } catch(e) {}
         rImage.src = imgSrc; // 设置实际显示图片
-        rImage.style.display = '';
-        if (imageOverlay) imageOverlay.style.display = 'none';
-    }
-    rImage.alt = coffee.name.replace('\n',' ');
-
+        rImage.style.display = ''; // 确保图片元素显示（清空为默认显示），用于覆盖层隐藏后正常可见
+        if (imageOverlay) imageOverlay.style.display = 'none'; // 若存在“添加图片”覆盖层，则在已有图片时隐藏它
+    } // 结束默认图片渲染分支（非自定义或已存在图片）
+    rImage.alt = coffee.name.replace('\n',' '); // 设置无障碍文本与占位标题，去除换行保证一致的替代文本
+    
     // 显示弹窗并锁定页面滚动
-    modalOverlay.classList.add('active');
-    document.body.style.overflow='hidden';
-}
+    modalOverlay.classList.add('active'); // 打开配方弹窗遮罩，展示卡片
+    document.body.style.overflow='hidden'; // 锁定页面滚动，避免弹窗打开时背景滚动
+} // 结束 openModal
 
-function showEditHint(){ // 创建居中编辑提示与透明遮罩
-    // cleanup existing
-    const prevHint = document.querySelector('.edit-hint');
-    const prevMask = document.querySelector('.edit-hint-mask');
-    if (prevHint && prevHint.parentNode) prevHint.parentNode.removeChild(prevHint); // 清理已有提示避免重复
-    if (prevMask && prevMask.parentNode) prevMask.parentNode.removeChild(prevMask); // 清理已有遮罩避免重复
-
-    const mask = document.createElement('div'); // 透明遮罩，拦截其它点击
-    mask.className = 'edit-hint-mask';
-    document.body.appendChild(mask);
-
-    const hint = document.createElement('div'); // 中心提示容器
-    hint.className = 'edit-hint';
-    hint.innerHTML = `
-        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-        </svg>
-        <span>编辑</span>
-    `;
-    document.body.appendChild(hint); // 将提示插入页面
-
-    const removeAll = ()=>{ // 移除提示与遮罩的工具函数
-        if (hint && hint.parentNode) hint.parentNode.removeChild(hint);
-        if (mask && mask.parentNode) mask.parentNode.removeChild(mask);
+function showEditHint(){ // 三点按钮点击后弹出紧凑的“编辑”下拉卡片
+    const prev = document.getElementById('editDropdown'); // 查找并移除已有的下拉卡片，防止重复
+    if (prev && prev.parentNode) prev.parentNode.removeChild(prev); // 若已存在下拉卡片则移除
+    const header = document.querySelector('.recipe-header'); // 标题区域容器（作为绝对定位参照）
+    const btn = document.getElementById('editDotsBtn'); // 三点按钮元素
+    if (!header || !btn) return; // 容错：缺少关键元素时不进行展示
+    const menu = document.createElement('div'); // 创建下拉菜单容器
+    menu.className = 'dropdown open'; // 复用现有 dropdown 样式并显示
+    menu.id = 'editDropdown'; // 设置唯一 ID，便于后续关闭与移除
+    const headerRect = header.getBoundingClientRect(); // 读取标题区域在视口中的位置，用于计算相对坐标
+    const btnRect = btn.getBoundingClientRect(); // 读取三点按钮位置，确定弹出卡片的垂直位置
+    const top = (btnRect.bottom - headerRect.top) + 0; // 计算菜单顶部相对标题区域的像素值（+0 便于微调）
+    menu.style.position = 'absolute'; // 绝对定位到标题区域内部
+    menu.style.left = 'auto'; // 左侧位置由右侧对齐控制
+    menu.style.right = '12px'; // 与标题右边缘保持一致的内边距
+    menu.style.top = top + 'px'; // 设置垂直位置，贴近三点按钮底部
+    menu.style.minWidth = '60px'; // 紧凑的最小宽度，让视觉更小巧
+    menu.style.padding = '5px'; // 缩小整体内边距以更紧凑
+    menu.style.borderRadius = '10px'; // 圆角与主题一致
+    menu.style.boxShadow = '0 6px 16px rgba(62,39,35,0.15)'; // 使用主题色系的阴影深度
+    menu.style.border = '1px solid rgba(121,85,72,0.15)'; // 主题色系的细边框，增强层次
+    menu.style.opacity = '0'; // 初始透明，用于入场动画
+    menu.style.transform = 'scale(0.98) translateY(-6px)'; // 初始轻微缩放并向上偏移，提升弹出质感
+    menu.style.transition = 'transform 0.16s ease, opacity 0.16s ease'; // 入场/退场的过渡动画
+    const item = document.createElement('div'); // 创建单个菜单项
+    item.className = 'dropdown-item'; // 使用现有菜单项样式
+    item.textContent = '编辑'; // 菜单项文案
+    item.style.padding = '2px 10px'; // 缩小行内间距以达成更小的视觉
+    item.style.fontSize = '0.82rem'; // 调整字号为更小的比例，保持信息清晰
+    item.onclick = ()=>{
+        close();
+        if (editBtn) editBtn.style.display = 'inline-block';
+        if (resetBtn) resetBtn.style.display = 'inline-block';
+        if (!isEditingSteps) startEditing();
+        const rTitleEl = document.getElementById('rTitle');
+        const rDescEl = document.getElementById('rDesc');
+        const rTitleTextEl = document.getElementById('rTitleText');
+        if (customInputs) customInputs.style.display = 'block';
+        if (rTitleEl) rTitleEl.style.display = 'none';
+        if (rDescEl) rDescEl.style.display = 'none';
+        const dots = document.getElementById('editDotsBtn');
+        if (dots) dots.style.display = 'none';
+        if (inputTitle && rTitleTextEl) inputTitle.value = rTitleTextEl.innerText.trim();
+        if (inputDesc && rDescEl) inputDesc.value = rDescEl.innerText.trim();
+        if (rImage) { rImage.style.cursor = 'pointer'; rImage.onclick = ()=>{ showImageEditOptions(); }; }
+        const customBack = document.getElementById('customBackBtn'); // 获取编辑态返回键元素
+        if (customBack && inputTitle) { // 在编辑态显示返回键，并以输入框为参照定位
+            customBack.style.display = 'inline-flex'; // 显示返回键并使用与现有样式一致的显示模式
+            const left = inputTitle.offsetLeft - 35; // 计算水平位置，使返回键探出标题左缘但不影响对齐
+            const top = inputTitle.offsetTop + Math.max(0, (inputTitle.offsetHeight - 40) / 2); // 计算垂直居中位置，贴合输入框高度
+            customBack.style.left = left + 'px'; // 应用水平位置
+            customBack.style.top = top + 'px'; // 应用垂直位置
+            customBack.onclick = closeModal; // 点击返回键关闭弹窗，行为与现有返回键一致
+        }
     };
-    hint.onclick = ()=>{ removeAll(); if (editBtn) editBtn.style.display = 'inline-block'; if (resetBtn) resetBtn.style.display = 'inline-block'; if (!isEditingSteps) startEditing(); const rTitleEl = document.getElementById('rTitle'); const rDescEl = document.getElementById('rDesc'); const rTitleTextEl = document.getElementById('rTitleText'); if (customInputs) customInputs.style.display = 'block'; if (rTitleEl) rTitleEl.style.display = 'none'; if (rDescEl) rDescEl.style.display = 'none'; const dotsBtn = document.getElementById('editDotsBtn'); if (dotsBtn) dotsBtn.style.display = 'none'; if (inputTitle && rTitleTextEl) inputTitle.value = rTitleTextEl.innerText.trim(); if (inputDesc && rDescEl) inputDesc.value = rDescEl.innerText.trim(); if (rImage) { rImage.style.cursor = 'pointer'; rImage.onclick = ()=>{ if (isMobile()) { if (overlayInputImageCamera) overlayInputImageCamera.click(); } else { if (overlayInputImage) overlayInputImage.click(); } }; } }; // 点击编辑进入步骤编辑并开启标题/描述/图片编辑，且隐藏三点按钮
-    mask.onclick = ()=>{ removeAll(); }; // 点击其他区域关闭提示
+    menu.appendChild(item);
+    header.appendChild(menu);
+    requestAnimationFrame(()=>{ menu.style.opacity = '1'; menu.style.transform = 'scale(1) translateY(0)'; });
+    function close(){
+        const m = document.getElementById('editDropdown');
+        if (m) { m.style.opacity = '0'; m.style.transform = 'scale(0.98) translateY(-6px)'; }
+        setTimeout(()=>{ if (m && m.parentNode) m.parentNode.removeChild(m); }, 160);
+        document.removeEventListener('click', onDoc, true);
+    }
+    function onDoc(e){
+        if (!menu.contains(e.target) && e.target !== btn) close();
+    }
+    setTimeout(()=>{ document.addEventListener('click', onDoc, true); }, 0);
 }
 
 function positionEditDots(){
@@ -993,9 +1094,9 @@ function closeModal(){
         const list = document.getElementById('rSteps');
         list.innerHTML = '';
         if (uploadChoices) uploadChoices.style.display = 'none';
-        const customBack = document.getElementById('customBackBtn');
-        if (customBack) customBack.style.display = 'none';
     }
+    const __customBack1 = document.getElementById('customBackBtn'); // 统一找到编辑态返回键
+    if (__customBack1) __customBack1.style.display = 'none'; // 关闭弹窗后始终隐藏，防止下次打开出现两个返回键
     if (confirmOverlay) confirmOverlay.classList.remove('active');
     const imageOverlay2 = document.getElementById('imageAddOverlay');
     if (imageOverlay2) imageOverlay2.style.display = 'none';
